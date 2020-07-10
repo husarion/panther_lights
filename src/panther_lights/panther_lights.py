@@ -17,7 +17,7 @@ class Animation:
     def __init__(self, buffer_size, default_animation=NO_ANIMATION, default_color=NO_COLOR):
         self.buffer = [0] * buffer_size
         self.frame_count = 0
-        self.brightness = 31 
+        self.bright_percent = 0 
         self.current_animation = default_animation
         self.animation_color = default_color
     
@@ -36,11 +36,11 @@ class Animation:
          
     def fade_color(self, color):
         if self.current_animation == Animation.FADE_COLOR and self.animation_color == color:
-            index = self.frame_count % 61 + 1 
+            index = self.frame_count % 60 + 1 
             if index < 31: 
-                self.brightness = index 
+                self.bright_percent = index * 100.0/30.0 
             else:
-                self.brightness = 62 - index
+                self.bright_percent = 100 - (60 - index) * 100.0/30.0
             self.frame_count += 1
         else:
             self.current_animation = Animation.FADE_COLOR
@@ -48,7 +48,7 @@ class Animation:
             for i in range(len(self.buffer)):
                 self.buffer[i] = self.animation_color
             self.frame_count = 0
-            self.brightness = 0 
+            self.bright_percent = 0 
         return True
     
     def solid_color(self, color):
@@ -57,10 +57,12 @@ class Animation:
         else:
             self.current_animation = Animation.SOLID_COLOR
             self.animation_color = color
+            self.bright_percent = 100
             for i in range(len(self.buffer)):
                 self.buffer[i] = self.animation_color
             return True
  
+
 class PantherLights(Thread):
     
     class Message:
@@ -71,15 +73,22 @@ class PantherLights(Thread):
             self.anim_color_rear = anim_color_rear
    
     DELTA_TIME = 0.033
+    LED_SWITCH_FRONT_STATE = True 
+    LED_POWER_ON_STATE = True
+    GLOBAL_MAX_BRIGHTNESS = 20
     
-    def __init__(self, event, queue, num_leds=4, gpio_pin=22, gpio_state_front=True):
+    def __init__(self, event, queue, num_leds=73, led_switch_pin=20, led_power_pin = 26, brightness = GLOBAL_MAX_BRIGHTNESS):
+        '''Initialize PantherLights thread'''
         super().__init__(name="panther_lights_thread")
-        self.__gpio_state_front = gpio_state_front
-        self.__gpio_pin = gpio_pin
-        self.__pixels = apa102.APA102(num_led=num_leds, order="bgr", mosi=10, sclk=11)
+        self.__led_switch_pin = led_switch_pin
+        self.__led_power_pin = led_power_pin
+        # initialize apa102 module and SPI outputs
+        self.__pixels = apa102.APA102(num_led=num_leds, order="bgr", mosi=10, sclk=11, global_brightness=brightness)
+        # initialize gpio outputs 
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.__gpio_pin, GPIO.OUT)
-        GPIO.output(self.__gpio_pin, self.__gpio_state_front)
+        GPIO.setup(self.__led_switch_pin, GPIO.OUT)
+        GPIO.setup(self.__led_power_pin, GPIO.OUT)
+        GPIO.output((self.__led_switch_pin, self.__led_power_pin), (PantherLights.LED_SWITCH_FRONT_STATE, PantherLights.LED_POWER_ON_STATE))
         self.__stop_event = event
         self.__queue = queue
         self.__animation_front = Animation(num_leds)
@@ -126,23 +135,22 @@ class PantherLights(Thread):
 
             # display new frame
             self.__lock.acquire()
-            GPIO.output(self.__gpio_pin, self.__gpio_state_front)
+            GPIO.output(self.__led_switch_pin, PantherLights.LED_SWITCH_FRONT_STATE)
             if update_frame_front and self.__front_enabled:
                 for i in range(self.__pixels.num_led):
-                    self.__pixels.set_pixel_rgb(i, self.__animation_front.buffer[i])
-                self.__pixels.global_brightness = self.__animation_front.brightness 
+                    self.__pixels.set_pixel_rgb(i, self.__animation_front.buffer[i], bright_percent=self.__animation_front.bright_percent)
                 self.__pixels.show()
-            GPIO.output(self.__gpio_pin, not self.__gpio_state_front)
+            GPIO.output(self.__led_switch_pin, not PantherLights.LED_SWITCH_FRONT_STATE)
             if update_frame_rear and self.__rear_enabled:
                 for i in range(self.__pixels.num_led):
-                    self.__pixels.set_pixel_rgb(i, self.__animation_rear.buffer[i])
-                self.__pixels.global_brightness = self.__animation_rear.brightness
+                    self.__pixels.set_pixel_rgb(i, self.__animation_rear.buffer[i], bright_percent=self.__animation_front.bright_percent)
                 self.__pixels.show()
             self.__lock.release()
             time.sleep(PantherLights.DELTA_TIME) 
         logging.info("Thread %s: closing!", self._name) 
-        GPIO.cleanup()
         self.__pixels.cleanup()
+        GPIO.output(self.__led_power_pin, PantherLights.LED_POWER_ON_STATE) 
+        GPIO.cleanup()
 
 def main():
     format = "%(asctime)s: %(message)s"
@@ -152,15 +160,12 @@ def main():
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
     lights = PantherLights(event=stop_thread_event, queue=my_queue)
     lights.start()
-    lights.enable_strip(True,False)
     
     while 1:
         try:
-            my_queue.put(PantherLights.Message(Animation.FADE_COLOR, 0x0000ff, None, None))
+            my_queue.put(PantherLights.Message(Animation.FADE_COLOR, 0x0000ff, Animation.FADE_COLOR, 0x00ff00))
             time.sleep(10)
-            my_queue.put(PantherLights.Message(Animation.FADE_COLOR, 0xff0000, None, None))
-            time.sleep(10)
-            my_queue.put(PantherLights.Message(Animation.SOLID_COLOR, 0x00ff00, None,None))
+            my_queue.put(PantherLights.Message(Animation.SOLID_COLOR, 0x00ff00, Animation.SOLID_COLOR, 0x0000ff))
             time.sleep(10)
         except KeyboardInterrupt:
             stop_thread_event.set()
