@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model
+  href="http://download.ros.org/schema/package_format3.xsd"
+  schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>panther_lights</name>
   <version>0.0.0</version>
   <description>The panther_lights package</description>
@@ -55,6 +58,8 @@
   <build_export_depend>std_msgs</build_export_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <build_depend >message_generation</build_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">message_runtime</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
