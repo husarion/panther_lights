@@ -26,7 +26,7 @@ class LightsNode:
     
     def __init__(self):
         self.stop_notifier = Event()
-        self.queue = Queue()
+        self.queue = Queue(10)
         self.lights = None
         self.yaml_data = None
         
