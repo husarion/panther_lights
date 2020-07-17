@@ -1,6 +1,8 @@
 # panther_lights
 Control Panther's APA102C lights using ROS.
 
+version: 0.1.0
+
 ## Prerequisites
 
 ### `RPi.GPIO`
@@ -122,7 +124,7 @@ custom_color: ''" -1
 Change animation to `BLINKER_LEFT` with custom colors (front is green, rear is red):
 
 ```bash
-$ rostopic pub /panther_lights panther_lights/LightsMessage "animation: 4
+$ rostopic pub /panther_lights panther_lights/LightsMessage "animation: 1
 custom_color: '0x00FF00 0xFF0000'" -1
 ```
 
