@@ -98,7 +98,18 @@ To start node use:
 $ rosrun panther_lights lights_node
 ```
 
-The node subscribes to `/panther_lights` topic with message type `/panther_lights/LightsMessage`:
+To start led controller subscribing move_base status use:
+```bash
+$ rosrun panther_lights lights_controller_simple
+```
+
+To start launch composed of those two nodes use:
+```bash
+$ roslaunch panther_lights panther_lights_simple.launch
+```
+
+
+The node waits for service to `/set_panther_lights` topic with service type `/panther_lights/SetLights`:
 ```
 uint8 BLINKER_RIGHT = 0
 uint8 BLINKER_LEFT = 1
@@ -117,15 +128,15 @@ string custom_color
 Change animation to `BLINIKER_LEFT`:
 
 ```bash
-$ rostopic pub /panther_lights panther_lights/LightsMessage "animation: 1
-custom_color: ''" -1
+$ rosservice call /set_panther_lights "animation: 1
+custom_color: ''"
 ```
 
 Change animation to `BLINKER_LEFT` with custom colors (front is green, rear is red):
 
 ```bash
-$ rostopic pub /panther_lights panther_lights/LightsMessage "animation: 1
-custom_color: '0x00FF00 0xFF0000'" -1
+$ rosservice call /set_panther_lights "animation: 1
+custom_color: '0x00FF00 0xFF0000'"
 ```
 
 ### Animation configuration

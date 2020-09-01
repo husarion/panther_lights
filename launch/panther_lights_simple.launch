@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="panther_lights" type="lights_node" name="lights_node" output="log"/>
+
+    <node pkg="panther_lights" type="lights_controller_simple" name="lights_controller_simple" output="log"/>
+
+</launch>
