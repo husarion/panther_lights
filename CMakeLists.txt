@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
 )
-find_package(BehaviorTreeV3)
 
 catkin_python_setup()
 
@@ -45,6 +44,9 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/panther_lights.cpp
 # )
+
+add_executable(lights_controller_bt src/panther_lights/lights_controller_bt.cpp)
+target_link_libraries(lights_controller_bt ${catkin_LIBRARIES})
 
 add_executable(lights_controller_simple src/panther_lights/lights_controller_simple.cpp)
 target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
