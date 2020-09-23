@@ -45,9 +45,6 @@ include_directories(
 #   src/${PROJECT_NAME}/panther_lights.cpp
 # )
 
-add_executable(lights_controller_bt src/panther_lights/lights_controller_bt.cpp)
-target_link_libraries(lights_controller_bt ${catkin_LIBRARIES})
-
 add_executable(lights_controller_simple src/panther_lights/lights_controller_simple.cpp)
 target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
 
