@@ -4,6 +4,6 @@
         <param name="~/config_file" type="string" value="$(find panther_lights)/config/panther_lights_animations.yaml"/>
     </node>
     
-    <node pkg="panther_lights" type="lights_controller_simple" name="lights_controller_simple" output="log"/>
+    <node pkg="panther_lights" type="lights_controller" name="lights_controller" output="log"/>
 
 </launch>

@@ -47,6 +47,11 @@ include_directories(
 
 add_executable(lights_controller_simple src/panther_lights/lights_controller_simple.cpp)
 target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
+add_dependencies(lights_controller_simple panther_lights_gencpp)
+
+add_executable(lights_controller src/panther_lights/lights_controller_node.cpp)
+target_link_libraries(lights_controller ${catkin_LIBRARIES})
+add_dependencies(lights_controller panther_lights_gencpp)
 
 
 #############
