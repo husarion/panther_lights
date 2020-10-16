@@ -9,6 +9,9 @@
 # SKID_RIGHT = 7
 # SKID_LEFT = 8
 # ERROR = 9
+# TEST1 = 10
+# TEST2 = 11
+
 global_brightness: 20
 num_leds: 73
 
@@ -22,16 +25,16 @@ animations:
     back: {type: 'COLOR_WIPE_HALF_DOWN_FAST', color: !!int 0xff6600}
   
   - id: 2 # BRAKE_FRONT
-    front: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    front: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
     back: {type: 'SOLID_COLOR', color: !!int 0xffffff}
   
   - id: 3 # BRAKE_REAR
     front: {type: 'SOLID_COLOR', color: !!int 0xffffff}
-    back: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    back: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
   
   - id: 4 # BRAKE_BOTH
-    front: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
-    back: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    front: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    back: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
 
   - id: 5 # NORMAL_FORWARD
     front: {type: 'SOLID_COLOR', color: !!int 0xffffff}
@@ -52,3 +55,11 @@ animations:
   - id: 9 # ERROR
     front: {type: 'FADE_COLOR', color: !!int 0xFF0000}
     back: {type: 'FADE_COLOR', color: !!int 0xFF0000}
+
+  - id: 10 # TEST1
+    front: {type: 'DOUBLE_COLOR_WIPE_NORMAL', color: !!int 0xff0000}
+    back: {type: 'DOUBLE_COLOR_WIPE_NORMAL', color: !!int 0xff0000}
+
+  - id: 11 # TEST2
+    front: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    back: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}

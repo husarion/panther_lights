@@ -5,6 +5,7 @@ from enum import Enum
 from panther_lights.driver import *
 from panther_lights.msg import LightsMessage
 from panther_lights.srv import SetLights, SetLightsResponse
+from panther_lights.srv import SetBrightness, SetBrightnessResponse
 from queue import Queue
 from threading import Event
 import yaml
@@ -65,9 +66,20 @@ class LightsNode:
 
         rospy.on_shutdown(self.shutdown_cb)
         self.lights.start()
-        self.__sub = rospy.Service('set_panther_lights', SetLights, self.process_message)
+        self.__serv_lights = rospy.Service('set_panther_lights', SetLights, self.set_lights_callback)
+        self.__serv_brightness = rospy.Service('set_panther_lights_brightness', SetBrightness, self.set_brightness_callback)
 
-    def process_message(self, msg):
+    def set_brightness_callback(self,msg):
+        info_str = "Data %f" % msg.brightness
+        rospy.loginfo(info_str)
+
+        self.queue.put(PantherLights.BrightnessMessage(
+            msg.brightness
+        ))
+
+        return SetBrightnessResponse(info_str)
+
+    def set_lights_callback(self, msg):
         info_str = "Data %d" % msg.animation
         rospy.loginfo(info_str)
 
@@ -77,14 +89,14 @@ class LightsNode:
                 # try to parse colors
                 if len(msg.custom_color) != 0:
                     tags = msg.custom_color.split(' ')
-                    self.queue.put(PantherLights.Message(
+                    self.queue.put(PantherLights.AnimationMessage(
                         anim['front']['type'],
                         int(tags[0],base=16),
                         anim['back']['type'],
                         int(tags[1],base=16),
                     ))
                 else:
-                    self.queue.put(PantherLights.Message(
+                    self.queue.put(PantherLights.AnimationMessage(
                         anim['front']['type'],
                         anim['front']['color'],
                         anim['back']['type'],
