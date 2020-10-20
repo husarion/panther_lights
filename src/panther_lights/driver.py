@@ -36,6 +36,10 @@ class Animation:
 
         self.even = True
         self.fade_steps_per_cycle = 30
+        if self.num_pixel % 2 == 0:
+            self.snake_middle_point = (int(ceil(self.num_pixel / 2.0) - 1), int(ceil(self.num_pixel / 2.0)))
+        else:
+            self.snake_middle_point = (int(ceil(self.num_pixel / 2.0) - 1), int(ceil(self.num_pixel / 2.0) - 1))
         self.snake_index = 0
         self.snake_wait = 6
         self.double_snake_index = [0, 0]
@@ -107,7 +111,7 @@ class Animation:
     def snake(self, direction, speed, mode, half=False):
         if self.frame_count == 0:
             if half:
-                self.snake_index = ceil(self.num_pixel / 2.0) - 1  # delta
+                self.snake_index = self.snake_middle_point[1] if direction else self.snake_middle_point[0]  # delta
             else:
                 self.snake_index = 0 if direction else self.num_pixel - 1  # delta
             for i in range(self.num_pixel):
@@ -132,7 +136,7 @@ class Animation:
             elif self.snake_index - self.num_pixel < 2 * self.snake_wait:
                 self.snake_index += 1
             else:
-                self.snake_index = ceil(self.num_pixel / 2.0) - 1 if half else 0
+                self.snake_index = self.snake_middle_point[1] if half else 0
         else:
             if self.snake_index >= 0:
                 if mode:
@@ -152,7 +156,7 @@ class Animation:
             elif self.snake_index > (-self.snake_wait) * 2 - 1:
                 self.snake_index -= 1
             else:
-                self.snake_index = ceil(self.num_pixel / 2.0) - 1 if half else self.num_pixel - 1
+                self.snake_index = self.snake_middle_point[0] if half else self.num_pixel - 1
 
         self.frame_count += 1
         return True
