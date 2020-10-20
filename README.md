@@ -108,8 +108,9 @@ To start launch composed of those two nodes use:
 $ roslaunch panther_lights panther_lights_simple.launch
 ```
 
-
-The node waits for service to `/set_panther_lights` topic with service type `/panther_lights/SetLights`:
+#### Services
+`/set_panther_lights` with message type `/panther_lights/SetLights`:
+    
 ```
 uint8 BLINKER_RIGHT = 0
 uint8 BLINKER_LEFT = 1
@@ -139,6 +140,20 @@ $ rosservice call /set_panther_lights "animation: 1
 custom_color: '0x00FF00 0xFF0000'"
 ```
 
+`/set_panther_lights_brightness` with message type `/panther_lights/SetBrightness`:
+
+```
+float brightness
+---
+string result
+```
+
+Change lights brightness to half:
+
+```bash
+$ rosservice call /set_panther_lights_brightness "brightness: 0.5"
+```
+
 ### Animation configuration
 
 You can customize your animation in file `panther_lights_animations.yaml`. You can find it in your installation directory (`<installation_path>install/share/config/panther_lights_animations.yaml`). 
@@ -156,6 +171,8 @@ Default configuration:
 # SKID_RIGHT = 7
 # SKID_LEFT = 8
 # ERROR = 9
+# TEST1 = 10
+# TEST2 = 11
 global_brightness: 20
 num_leds: 73
 
@@ -169,16 +186,16 @@ animations:
     back: {type: 'COLOR_WIPE_HALF_DOWN_FAST', color: !!int 0xff6600}
   
   - id: 2 # BRAKE_FRONT
-    front: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    front: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
     back: {type: 'SOLID_COLOR', color: !!int 0xffffff}
   
   - id: 3 # BRAKE_REAR
     front: {type: 'SOLID_COLOR', color: !!int 0xffffff}
-    back: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    back: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
   
   - id: 4 # BRAKE_BOTH
-    front: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
-    back: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    front: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    back: {type: 'ONE_DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
 
   - id: 5 # NORMAL_FORWARD
     front: {type: 'SOLID_COLOR', color: !!int 0xffffff}
@@ -199,4 +216,12 @@ animations:
   - id: 9 # ERROR
     front: {type: 'FADE_COLOR', color: !!int 0xFF0000}
     back: {type: 'FADE_COLOR', color: !!int 0xFF0000}
+
+  - id: 10 # TEST1
+    front: {type: 'DOUBLE_COLOR_WIPE_NORMAL', color: !!int 0xff0000}
+    back: {type: 'DOUBLE_COLOR_WIPE_NORMAL', color: !!int 0xff0000}
+
+  - id: 11 # TEST2
+    front: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
+    back: {type: 'DOUBLE_COLOR_WIPE_FAST', color: !!int 0xff0000}
 ```

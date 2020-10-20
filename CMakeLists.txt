@@ -25,6 +25,7 @@ add_message_files(
 add_service_files(
   FILES
   SetLights.srv
+  SetBrightness.srv
  )
 
 generate_messages(
