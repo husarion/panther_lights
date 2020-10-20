@@ -5,6 +5,7 @@ from threading import Thread, Event, Lock
 from enum import Enum
 import sys
 import time
+from math import ceil
 from queue import Queue
 
 class Animation:
@@ -106,7 +107,7 @@ class Animation:
     def snake(self, direction, speed, mode, half=False):
         if self.frame_count == 0:
             if half:
-                self.snake_index = self.num_pixel // 2 - 1  # delta
+                self.snake_index = ceil(self.num_pixel / 2.0) - 1  # delta
             else:
                 self.snake_index = 0 if direction else self.num_pixel - 1  # delta
             for i in range(self.num_pixel):
@@ -131,7 +132,7 @@ class Animation:
             elif self.snake_index - self.num_pixel < 2 * self.snake_wait:
                 self.snake_index += 1
             else:
-                self.snake_index = self.num_pixel // 2 - 1 if half else 0
+                self.snake_index = ceil(self.num_pixel / 2.0) - 1 if half else 0
         else:
             if self.snake_index >= 0:
                 if mode:
@@ -151,7 +152,7 @@ class Animation:
             elif self.snake_index > (-self.snake_wait) * 2 - 1:
                 self.snake_index -= 1
             else:
-                self.snake_index = self.num_pixel // 2 - 1 if half else self.num_pixel - 1
+                self.snake_index = ceil(self.num_pixel / 2.0) - 1 if half else self.num_pixel - 1
 
         self.frame_count += 1
         return True
