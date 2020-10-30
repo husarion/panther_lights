@@ -50,7 +50,7 @@ add_executable(lights_controller_simple src/panther_lights/lights_controller_sim
 target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
 add_dependencies(lights_controller_simple panther_lights_gencpp)
 
-add_executable(lights_controller src/panther_lights/lights_controller_node.cpp)
+add_executable(lights_controller src/panther_lights/lights_controller_node.cpp src/panther_lights/LightsController.cpp)
 target_link_libraries(lights_controller ${catkin_LIBRARIES})
 add_dependencies(lights_controller panther_lights_gencpp)
 

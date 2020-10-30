@@ -26,7 +26,7 @@ protected:
     const double min_voltage{33.0};
     std::vector<double> battery_reading;
     int index{0};
-    int battery_level_status;
+    uint8_t battery_level_status{0};
     int move_base_status;
     int status;
     panther_lights::SetLights lights_message{};

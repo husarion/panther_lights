@@ -1,5 +1,4 @@
 #include "LightsController.hpp"
-#include "LightsController.cpp"
 
 int main(int argc, char **argv)
 {

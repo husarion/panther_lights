@@ -33,12 +33,12 @@ void LightsController::batteryCallback(const sensor_msgs::BatteryState &msg)
         index = 0;
     }
     mean_voltage = std::accumulate(battery_reading.begin(), battery_reading.end(), 0.0) / rading_limit;
-    if (mean_voltage < min_voltage && battery_level_status == 0)
+    if (mean_voltage < min_voltage && battery_level_status <= 0)
     {
         ROS_WARN("Battery level is low, please charge your Panther");
         battery_level_status = 1;
     }
-    else if ((mean_voltage > (min_voltage + 2.0) && battery_level_status == 1))
+    else if ((mean_voltage > (min_voltage + 2.0) && battery_level_status >= 1))
     {
         {
             battery_level_status = 0;
