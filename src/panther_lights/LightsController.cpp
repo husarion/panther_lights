@@ -84,6 +84,10 @@ void LightsController::getStatus()
     {
         status_now = -1; // error low battery
     }
+    else if(battery_level_status != 1 && move_base_status == -2)
+    {
+        status_now = 10; // battery above low limit
+    }
     else
     {
         status_now = move_base_status;
@@ -124,6 +128,10 @@ void LightsController::setLights()
         break;
     case 4: // ABORTED
         lights_message.request.animation = 9;
+        lights_message.request.custom_color = "";
+        break;
+    case 10: // CHARGED AND READY
+        lights_message.request.animation = 10;
         lights_message.request.custom_color = "";
         break;
     default:

@@ -27,7 +27,7 @@ protected:
     std::vector<double> battery_reading;
     int index{0};
     uint8_t battery_level_status{0};
-    int move_base_status;
+    int move_base_status{-2};
     int status;
     panther_lights::SetLights lights_message{};
 
