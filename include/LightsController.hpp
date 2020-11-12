@@ -23,7 +23,7 @@ protected:
 
     double mean_voltage;
     const int rading_limit = 50;
-    const double min_voltage{33.0};
+    const double min_voltage{35.0};
     std::vector<double> battery_reading;
     int index{0};
     uint8_t battery_level_status{0};
