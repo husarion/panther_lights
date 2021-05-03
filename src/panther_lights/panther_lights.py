@@ -3,16 +3,18 @@ from threading import Thread, Event, Lock
 from enum import Enum
 import sys
 import time
-from math import ceil
 from queue import Queue, PriorityQueue
 import numpy as np
 
 from driver import VirtualLEDController, HardwareAPA102Controller
 from animation import *
 
+import yaml 
 
 import signal
 import sys
+
+import os
 
 class PantherLightsThread(Thread):
 
@@ -53,22 +55,29 @@ class PantherLightsThread(Thread):
    
     def run(self):
         logging.info("Thread %s: started!", self._name)
-        a = Slide(0, 5, self._time_step, self._num_leds, 0, 47, [255,255,0])
-        # b = Slide(0, 5, self._time_step, self._num_leds, 10, 30, [255,255,0])
+
+        src_path = os.path.dirname(__file__)
+        conf_path = os.path.relpath('../../config/led_conf.yaml', src_path)
+
+        importer = LEDConfigImporter(conf_path)
+        animations = [importer.get_animation(20)]
+
         while self._is_running:
-            # if not self._animation_queue.empty():
+            start_time = time.time()
 
-            # else:
-            # start = time.time()
-            frame = a()
-            if frame is not None:
-                self._led.set_panel(0, frame)
+            if animations:
+                frame = animations[0](0)
+                if frame is not None:
+                    self._led.set_panel(0, frame)
 
-            # frame = b()
-            # if frame is not None:
-            #     self._led.set_panel(1, frame)
-            # print(time.time() - start)
-            time.sleep(self._time_step)
+                frame = animations[0](1)
+                if frame is not None:
+                    self._led.set_panel(1, frame)
+                else:
+                    animations.remove(animations[0])
+
+            finish_time = time.time()
+            time.sleep(self._time_step - (finish_time - start_time))
 
 
 
@@ -84,5 +93,5 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
 
     panther_lights.start()
-    time.sleep(10)
+    time.sleep(5)
     panther_lights.join()

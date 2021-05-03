@@ -1,0 +1,39 @@
+animations:
+  - id: 10
+    name: 'E-STOP'
+    priority: 0
+    animation:
+      both:
+        id: 0
+        duration: 2
+        delay: 0
+        color: [0,0,255]
+        range: [0, 47]
+
+  - id: 25
+    name: 'TURN-LEFT'
+    priority: 1
+    animation:
+      front:
+        id: 0
+        duration: 1
+        delay: 0
+        color: [0,255,255]
+        range: [0, 47]
+      tail:
+        id: 0
+        duration: 4
+        delay: 0
+        color: [0,255,0]
+        range: [45, 3]
+
+  - id: 20
+    name: 'TURN-LEFaT'
+    priority: 1
+    animation:
+      both:
+        id: 0
+        duration: 2
+        delay: 0
+        color: [255,0,255]
+        range: [0, 47]
