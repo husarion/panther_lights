@@ -60,7 +60,7 @@ class PantherLightsThread(Thread):
         conf_path = os.path.relpath('../../config/led_conf.yaml', src_path)
 
         importer = LEDConfigImporter(conf_path)
-        animations = [importer.get_animation(20)]
+        animations = [importer.get_animation_by_id(25), importer.get_animation_by_name('TURN-LEFT')]
 
         while self._is_running:
             start_time = time.time()
@@ -93,5 +93,5 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
 
     panther_lights.start()
-    time.sleep(5)
+    time.sleep(10)
     panther_lights.join()

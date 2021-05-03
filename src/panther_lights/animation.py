@@ -92,7 +92,7 @@ class Delay(Animation):
         super().overwrite_parameters(local_yaml)
 
 
-class AdvAnimation:
+class Executor:
 
     BASIC_ANIMATIONS = {
         Delay.ANIMATION_ID : Delay,
@@ -115,16 +115,16 @@ class AdvAnimation:
             else:
                 if 'id' not in anim_yaml['animation']['both'].keys():
                     raise LEDConfigImporter.LEDConfigImporterError(f'No id for light animations in {anim_yaml}')
-                self._front_animation = AdvAnimation.BASIC_ANIMATIONS[anim_yaml['animation']['both']['id']](anim_yaml['animation']['both'], num_led, time_step, global_brightness)
+                self._front_animation = Executor.BASIC_ANIMATIONS[anim_yaml['animation']['both']['id']](anim_yaml['animation']['both'], num_led, time_step, global_brightness)
                 self._tail_animation = copy.copy(self._front_animation)
         else:
             if 'id' not in anim_yaml['animation']['front'].keys():
                 raise LEDConfigImporter.LEDConfigImporterError(f'No id for front animation in {anim_yaml}')
-            self._front_animation = AdvAnimation.BASIC_ANIMATIONS[anim_yaml['animation']['front']['id']](anim_yaml['animation']['front'], num_led, time_step, global_brightness)
+            self._front_animation = Executor.BASIC_ANIMATIONS[anim_yaml['animation']['front']['id']](anim_yaml['animation']['front'], num_led, time_step, global_brightness)
 
             if 'id' not in anim_yaml['animation']['tail'].keys():
                 raise LEDConfigImporter.LEDConfigImporterError(f'No id for tail animation in {anim_yaml}')
-            self._tail_animation = AdvAnimation.BASIC_ANIMATIONS[anim_yaml['animation']['tail']['id']](anim_yaml['animation']['tail'], num_led, time_step, global_brightness)
+            self._tail_animation = Executor.BASIC_ANIMATIONS[anim_yaml['animation']['tail']['id']](anim_yaml['animation']['tail'], num_led, time_step, global_brightness)
 
 
     def __call__(self, panel):
@@ -143,14 +143,6 @@ class LEDConfigImporter:
         def __init__(self, message='YAML keyword error'):
             self.message = message
             super().__init__(self.message)
-
-    class Executor:
-        def __init__(self, executor_list):
-            self._executor = executor
-            self._frame = None
-
-        def __call__(self):
-            pass
 
 
 
@@ -188,18 +180,35 @@ class LEDConfigImporter:
         if len(id_map.values()) != len(set(id_map.values())):
             raise LEDConfigImporter.LEDConfigImporterError(f'Animations\' IDs in {file} aren\'t uniqueue.')
 
+        name_map = {i : anim_yaml['animations'][i]['name'] for i in range(len(anim_yaml['animations']))}
+        if len(name_map.values()) != len(set(name_map.values())):
+            raise LEDConfigImporter.LEDConfigImporterError(f'Animations\' names in {file} aren\'t uniqueue.')
+
         if set(id_map.values()) & set(self._imported_animations.keys()):
             raise LEDConfigImporter.LEDConfigImporterError(f'Animations\' IDs in {file} overlap previous ID declarations.')
 
         for anim in anim_yaml['animations']:
-            self._imported_animations[anim['id']] = AdvAnimation(anim, self._num_led, self._time_step, self._global_brightness)
+            self._imported_animations[(anim['id'], anim['name'])] = Executor(anim, self._num_led, self._time_step, self._global_brightness)
 
 
+    def get_animation_by_id(self, id):
+        keys = list(self._imported_animations.keys())
+        IDs = (np.array(keys)[:,0]).astype(np.int)
+        idx = np.where(IDs == id)[0]
+        if not len(idx):
+            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with ID: {id} is not defined.')
+        else:
+            key = keys[idx[0]]
+            return copy.deepcopy(self._imported_animations[key])
 
-    def create_animation(self, yaml):
-        pass
 
-
-    def get_animation(self, id):
-        return self._imported_animations[id]
+    def get_animation_by_name(self, name):
+        keys = list(self._imported_animations.keys())
+        names = (np.array(keys)[:,1])
+        idx = np.where(names == name)[0]
+        if not len(idx):
+            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with name: {name} is not defined.')
+        else:
+            key = keys[idx[0]]
+            return copy.deepcopy(self._imported_animations[key])
                 

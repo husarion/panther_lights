@@ -5,9 +5,9 @@ animations:
     animation:
       both:
         id: 0
-        duration: 2
+        duration: 3
         delay: 0
-        color: [0,0,255]
+        color: [255,255,255]
         range: [0, 47]
 
   - id: 25
@@ -22,7 +22,7 @@ animations:
         range: [0, 47]
       tail:
         id: 0
-        duration: 4
+        duration: 2
         delay: 0
         color: [0,255,0]
         range: [45, 3]
