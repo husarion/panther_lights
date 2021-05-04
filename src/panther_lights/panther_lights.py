@@ -1,97 +1,67 @@
-import logging
-from threading import Thread, Event, Lock
-from enum import Enum
-import sys
+import queue
 import time
-from queue import Queue, PriorityQueue
-import numpy as np
-
-from driver import VirtualLEDController, HardwareAPA102Controller
-from animation import *
-
-import yaml 
-
-import signal
-import sys
-
 import os
 
-class PantherLightsThread(Thread):
+from driver import VirtualLEDController, HardwareAPA102Controller
+from executor import PantherLightsAnimationExecutorThread, PantherLightsQueueElem
+from animation import LEDConfigImporter
 
+class PantherLights:
     def __init__(self,
-                 queue,
-                 time_step=0.01,
-                 num_leds=48,
-                 led_switch_pin=20,
-                 led_power_pin = 26):
+                 config_path=None,
+                 use_virtual_driver=False):
 
-        '''Initialize PantherLights thread'''
-        super().__init__(name="panther_lights_thread")
-
-        self._time_step = time_step
-        self._num_leds = num_leds
-
-        self._led = VirtualLEDController(num_leds=self._num_leds, panel_count=2)
-        # self._led = HardwareAPA102Controller(num_leds=num_leds, panel_count=2, led_switch_pin=led_switch_pin, led_power_pin=led_power_pin)
-
-        self._is_running = True
-        self._queue = queue
-        self._background_animation = None
-        self._animation_queue = PriorityQueue()
-
-    @property
-    def panel_state(self, panel_num):
-        return self._panels[panel_num]
-
-    def enable_panel(self, panel_num):
-        self._panels[panel_num] = True
-
-    def disable_panel(self, panel_num):
-        self._panels[panel_num] = True
-
-    def join(self):
-        self._is_running = False
-        del self._led
-   
-    def run(self):
-        logging.info("Thread %s: started!", self._name)
+        if config_path is None:
+            config_path = '../../config/led_conf.yaml'
 
         src_path = os.path.dirname(__file__)
-        conf_path = os.path.relpath('../../config/led_conf.yaml', src_path)
+        conf_path = os.path.relpath(config_path, src_path)
 
-        importer = LEDConfigImporter(conf_path)
-        animations = [importer.get_animation_by_id(25), importer.get_animation_by_name('TURN-LEFT')]
+        self._led_config_importer = LEDConfigImporter(conf_path)
 
-        while self._is_running:
-            start_time = time.time()
+        self._time_step = self._led_config_importer.time_step
+        self._num_led = self._led_config_importer.num_led
+        self._global_brightness = self._led_config_importer.time_step
 
-            if animations:
-                frame = animations[0](0)
-                if frame is not None:
-                    self._led.set_panel(0, frame)
+        self._driver = None
 
-                frame = animations[0](1)
-                if frame is not None:
-                    self._led.set_panel(1, frame)
-                else:
-                    animations.remove(animations[0])
+        if use_virtual_driver:
+            try:
+                import matplotlib
+            except ImportError:
+                raise ImportError('Unable to import matplotlib. Make sure you have installed matplotlib.')
+            self._driver = VirtualLEDController(num_led=self._num_led)
 
-            finish_time = time.time()
-            time.sleep(self._time_step - (finish_time - start_time))
+        else:
+            try:
+                from apa102_pi.driver import apa102 
+                import RPi.GPIO as GPIO
+            except ImportError:
+                raise ImportError('No hardware specific packages installed. Make sure you are running this node on Raspberry pi.')
+            self._driver = HardwareAPA102Controller(num_led=self._num_led,
+                                                    led_switch_pin=self._led_config_importer.led_switch_pin,
+                                                    led_power_pin=self._led_config_importer.led_power_pin,
+                                                    brightness=self._global_brightness)
 
 
+        self._queue = queue.Queue()
+        self._exector = PantherLightsAnimationExecutorThread(self._queue, self._driver, self._time_step)
 
 
-panther_lights = PantherLightsThread(None)
+    def start(self):
+        self._exector.start()
+        self._queue.put(PantherLightsQueueElem(self._led_config_importer.get_animation_by_id(10), is_background=True))
+        time.sleep(3)
+        self._queue.put(PantherLightsQueueElem(self._led_config_importer.get_animation_by_id(25)))
+        time.sleep(0.5)
+        self._queue.put(PantherLightsQueueElem(self._led_config_importer.get_animation_by_id(20), is_background=True))
+        time.sleep(10)
+        self._queue.put(PantherLightsQueueElem(self._led_config_importer.get_animation_by_name('TURN-LEFT'), interrupt=True))
+        time.sleep(5)
+        self._exector.join()
+        del self._driver
 
-def signal_handler(signum, frame):
-    signal.signal(signum, signal.SIG_IGN)
-    panther_lights.join()
-    sys.exit(0)
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, signal_handler)
-
-    panther_lights.start()
-    time.sleep(10)
-    panther_lights.join()
+    pl = PantherLights(use_virtual_driver=True)
+    pl.start()

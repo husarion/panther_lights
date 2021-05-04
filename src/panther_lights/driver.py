@@ -1,7 +1,3 @@
-import matplotlib
-matplotlib.use('GTK3Cairo')
-import matplotlib.pyplot as plt
-
 from threading import Thread
 from queue import Queue
 import numpy as np
@@ -11,16 +7,26 @@ from typing import Optional
 from enum import Enum
 
 
-# from apa102_pi.driver import apa102 
-# import RPi.GPIO as GPIO
+try:
+    import matplotlib
+    matplotlib.use('GTK3Cairo')
+    import matplotlib.pyplot as plt
+except ImportError:
+    pass
 
+
+try:
+    from apa102_pi.driver import apa102 
+    import RPi.GPIO as GPIO
+except ImportError:
+    pass
 
 
 class ControllerInterface():
     '''
     LED controller interface
     '''
-    def __init__(self, num_leds, panel_count, brightness):
+    def __init__(self, num_led, panel_count, brightness):
         pass
 
     def set_panel(self, panel_num, panel_frame, brightness):
@@ -30,14 +36,14 @@ class ControllerInterface():
 
 class VirtualLEDController(ControllerInterface):
     def __init__(self, 
-                 num_leds,
+                 num_led,
                  panel_count: Optional[int] = 2,
                  brightness: Optional[int] = 255):
 
-        self._num_leds = num_leds
+        self._num_led = num_led
         self._panel_count = panel_count
         self._global_brightness = brightness
-        self._frame = np.zeros((panel_count, num_leds, 3))
+        self._frame = np.zeros((panel_count, num_led, 3))
 
         self._queue = Queue()
         self._is_running = True
@@ -52,7 +58,7 @@ class VirtualLEDController(ControllerInterface):
         panel_frame (Array): new frame to set. Dimensions: (3, led count in single panel)
         '''
         assert 0 <= panel_num < self._panel_count
-        assert np.shape(panel_frame)[1] == self._num_leds and np.shape(panel_frame)[0] == 3
+        assert np.shape(panel_frame)[1] == self._num_led and np.shape(panel_frame)[0] == 3
 
         if brightness is None:
             brightness = self._global_brightness
@@ -111,17 +117,17 @@ class HardwareAPA102Controller(ControllerInterface):
 
 
     def __init__(self,
-                 num_leds,
+                 num_led,
                  panel_count: Optional[int] = 2,
                  brightness: Optional[int] = GLOBAL_MAX_BRIGHTNESS,
                  led_switch_pin: Optional[int] = 20,
                  led_power_pin: Optional[int] = 26):
 
-        self._num_leds = num_leds
+        self._num_led = num_led
         self._panel_count = panel_count
         self._global_brightness = brightness
 
-        self._pixels = apa102.APA102(num_led=num_leds, order="rgb", mosi=10, sclk=11, global_brightness=brightness)
+        self._pixels = apa102.APA102(num_led=num_led, order="rgb", mosi=10, sclk=11, global_brightness=brightness)
         self._led_switch_pin = led_switch_pin
         self._led_power_pin = led_power_pin
 
@@ -139,7 +145,7 @@ class HardwareAPA102Controller(ControllerInterface):
         panel_frame (Array): new frame to set. Dimensions: (3, led count in single panel)
         '''
         assert 0 <= panel_num < self._panel_count
-        assert np.shape(panel_frame)[1] == self._num_leds and np.shape(panel_frame)[0] == 3
+        assert np.shape(panel_frame)[1] == self._num_led and np.shape(panel_frame)[0] == 3
 
         if brightness is None:
             brightness = self._global_brightness
@@ -175,7 +181,7 @@ if __name__ == '__main__':
     Simple GUI test
     '''
 
-    vled = VirtualLEDController(num_leds=6, panel_count=2)
+    vled = VirtualLEDController(num_led=6, panel_count=2)
 
     frames = [[[0,0,0,0,0,255],[0,255,0,0,0,0],[0,0,0,0,0,0]],
               [[0,0,0,0,255,0],[0,255,0,0,0,0],[0,0,0,0,0,0]],

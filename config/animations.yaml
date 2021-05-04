@@ -2,6 +2,7 @@ animations:
   - id: 10
     name: 'E-STOP'
     priority: 0
+    background: true
     animation:
       both:
         id: 0
