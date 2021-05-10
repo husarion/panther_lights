@@ -4,5 +4,5 @@ led_switch_pin: 20
 led_power_pin: 26
 time_step: 0.01
 
-animation_files:
+event_animations_files:
   - animations.yaml

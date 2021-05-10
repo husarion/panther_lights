@@ -3,7 +3,7 @@ import time
 import os
 
 from driver import VirtualLEDController, HardwareAPA102Controller
-from executor import PantherLightsAnimationExecutorThread, PantherLightsQueueElem
+from executor import PantherLightsAnimationExecutorThread, AnimationLock
 from animation import LEDConfigImporter
 
 class PantherLights:
@@ -45,19 +45,16 @@ class PantherLights:
 
 
         self._queue = queue.Queue()
-        self._exector = PantherLightsAnimationExecutorThread(self._queue, self._driver, self._time_step)
+        self._emergency_lock = AnimationLock()
+        self._interrupt_lock = AnimationLock()
+        self._exector = PantherLightsAnimationExecutorThread(self._queue, self._emergency_lock, self._interrupt_lock,
+                                                             self._driver, self._time_step)
 
 
     def start(self):
         self._exector.start()
-        self._queue.put(PantherLightsQueueElem(self._led_config_importer.get_animation_by_id(10), is_background=True))
-        time.sleep(3)
-        self._queue.put(PantherLightsQueueElem(self._led_config_importer.get_animation_by_id(25)))
-        time.sleep(0.5)
-        self._queue.put(PantherLightsQueueElem(self._led_config_importer.get_animation_by_id(20), is_background=True))
+        self._queue.put(self._led_config_importer.get_animation_by_id(25))
         time.sleep(10)
-        self._queue.put(PantherLightsQueueElem(self._led_config_importer.get_animation_by_name('TURN-LEFT'), interrupt=True))
-        time.sleep(5)
         self._exector.join()
         del self._driver
 
