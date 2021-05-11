@@ -9,8 +9,10 @@ from enum import Enum
 
 try:
     import matplotlib
-    matplotlib.use('GTK3Cairo')
+    matplotlib.use('TkAgg')
     import matplotlib.pyplot as plt
+    import warnings
+    warnings.filterwarnings("ignore")
 except ImportError:
     pass
 

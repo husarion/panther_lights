@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>panther_lights</name>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <description>The panther_lights package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
@@ -10,6 +10,7 @@
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="szymon.szantula@husarion.com">byq77</maintainer>
   <maintainer email="adam.krawczyk@husarion.com">khasreto</maintainer>
+  <maintainer email="krzysztof.wojciechowski@husarion.com">Kotochleb</maintainer>
 
 
 

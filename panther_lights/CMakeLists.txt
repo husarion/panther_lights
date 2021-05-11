@@ -46,13 +46,13 @@ include_directories(
 #   src/${PROJECT_NAME}/panther_lights.cpp
 # )
 
-add_executable(lights_controller_simple src/panther_lights/lights_controller_simple.cpp)
-target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
-add_dependencies(lights_controller_simple panther_lights_gencpp)
+# add_executable(lights_controller_simple src/panther_lights/lights_controller_simple.cpp)
+# target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
+# add_dependencies(lights_controller_simple panther_lights_gencpp)
 
-add_executable(lights_controller src/panther_lights/lights_controller_node.cpp src/panther_lights/LightsController.cpp)
-target_link_libraries(lights_controller ${catkin_LIBRARIES})
-add_dependencies(lights_controller panther_lights_gencpp)
+# add_executable(lights_controller src/panther_lights/lights_controller_node.cpp src/panther_lights/LightsController.cpp)
+# target_link_libraries(lights_controller ${catkin_LIBRARIES})
+# add_dependencies(lights_controller panther_lights_gencpp)
 
 
 #############
@@ -67,6 +67,7 @@ install(PROGRAMS
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES
-  config/panther_lights_animations.yaml
+  config/led_conf.yaml
+  config/panther_events.yaml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )

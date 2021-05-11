@@ -16,11 +16,18 @@ class Animation:
         self._time_step = time_step
         self._num_led = num_led
 
-        animation_keywords = ['duration']
+        animation_keywords = ['duration', 'color']
         if not set(animation_keywords).issubset(anim_yaml.keys()):
             raise Animation.AnimationYAMLError('No animation specific parameters in YAML')
 
         self._duration = anim_yaml['duration']
+
+        self._color = anim_yaml['color']
+        if type(self._color) == int:
+            r = (self._color >> 16) & (0x0000FF)
+            g = (self._color >>  8) & (0x0000FF)
+            b = (self._color)       & (0x0000FF)
+            self._color = [r, g, b]
 
 
         if 'repeat' in anim_yaml.keys():
@@ -108,13 +115,16 @@ class Animation:
             return self._frame
 
 
-    def _animation(self):
+    def _animation_callback(self):
         raise NotImplementedError
 
     def reset(self):
         self._frame = np.zeros((3,self._num_led))
         self._frame_counter = 0
         self._current_loop = 0
+        self._wait_frames_counter = 0
+        self._is_waiting = False
+        self._last_frame = False
 
     @property
     def brightness(self):
@@ -131,13 +141,12 @@ class Slide(Animation):
     def __init__(self, anim_yaml, num_led, time_step, global_brightness):
         super().__init__(anim_yaml, num_led, time_step, global_brightness)
 
-        animation_keywords = ['range', 'color']
+        animation_keywords = ['range']
         if not set(animation_keywords).issubset(anim_yaml.keys()):
             raise Animation.AnimationYAMLError(f'No {set(animation_keywords) - set(yaml.keys())} in {anim_yaml}')
 
         self._start_point = anim_yaml['range'][0]
         self._end_point = anim_yaml['range'][1]
-        self._color = anim_yaml['color']
 
         self._direction = np.sign(self._end_point - self._start_point)
         self._frame[:,self._start_point] = np.array(self._color)
@@ -179,8 +188,8 @@ class Executor:
 
         self._id = event_yaml['id']
         self._name = event_yaml['name']
-        if 'is_interrupting' in event_yaml.keys():
-            self._priority = event_yaml['is_interrupting']
+        if 'interrupting' in event_yaml.keys():
+            self._priority = event_yaml['interrupting']
         else:
             self._priority = False
 

@@ -5,4 +5,4 @@ led_power_pin: 26
 time_step: 0.01
 
 event_animations_files:
-  - animations.yaml
+  - panther_events.yaml

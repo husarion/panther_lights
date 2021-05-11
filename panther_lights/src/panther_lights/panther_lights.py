@@ -54,11 +54,11 @@ class PantherLights:
     def start(self):
         self._exector.start()
         self._queue.put(self._led_config_importer.get_animation_by_id(25))
-        time.sleep(10)
+        time.sleep(4)
         self._exector.join()
         del self._driver
 
 
 if __name__ == '__main__':
-    pl = PantherLights(use_virtual_driver=True)
-    pl.start()
+    lights = PantherLights(use_virtual_driver=True)
+    lights.start()

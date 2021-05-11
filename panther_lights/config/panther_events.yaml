@@ -17,7 +17,7 @@ event:
         wait_after_sequence: 0.5
         repeat: 2
         keep_state: True
-        color: [0,255,255]
+        color: 0x0F0AFF
         range: [0, 47]
       tail:
         animation_id: 0
@@ -28,7 +28,7 @@ event:
 
   - id: 20
     name: 'TURN-LEFaT'
-    is_interrupting: True
+    interrupting: True
     animation:
       both:
         animation_id: 0
