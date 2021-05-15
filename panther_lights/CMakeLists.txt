@@ -10,22 +10,24 @@ add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  roscpp
   std_msgs
   message_generation
 )
 
 catkin_python_setup()
 
-add_message_files(
-  FILES
-  LightsMessage.msg
-)
+# add_message_files(
+#   FILES
+#   LightsMessage.msg
+# )
 
 add_service_files(
   FILES
-  SetLights.srv
-  SetBrightness.srv
+  Animation.srv
+  Brightness.srv
+  LightsID.srv
+  LightsName.srv
+  PanelState.srv
  )
 
 generate_messages(
@@ -50,7 +52,7 @@ include_directories(
 # target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
 # add_dependencies(lights_controller_simple panther_lights_gencpp)
 
-# add_executable(lights_controller src/panther_lights/lights_controller_node.cpp src/panther_lights/LightsController.cpp)
+# add_executable(lights_controller src/panther_lights/panther_lights.py)
 # target_link_libraries(lights_controller ${catkin_LIBRARIES})
 # add_dependencies(lights_controller panther_lights_gencpp)
 
@@ -60,7 +62,6 @@ include_directories(
 #############
 
 install(PROGRAMS
-   scripts/lights_node
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

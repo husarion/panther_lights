@@ -66,7 +66,6 @@ class Animation:
         self._last_frame = False
 
 
-
     def __call__(self):
         if self._wait_frames > 0:
             if not self._last_frame:
@@ -115,8 +114,21 @@ class Animation:
             return self._frame
 
 
+    def __str__(self):
+        return f'''
+                    duration: {self._duration}
+                    color: {self._color}
+                    repeat: {self._loops}
+                    keep_state: {self._keep_state}
+                    wait_after_sequence: {self._wait_after_sequence}
+                    brightness: {self._brightness}
+                '''
+
+
+
     def _animation_callback(self):
         raise NotImplementedError
+
 
     def reset(self):
         self._frame = np.zeros((3,self._num_led))
@@ -126,9 +138,11 @@ class Animation:
         self._is_waiting = False
         self._last_frame = False
 
+
     @property
     def brightness(self):
         return self._brightness
+
 
     @property
     def percent_done(self):
@@ -171,8 +185,11 @@ class Delay(Animation):
     def __init__(self, yaml, num_led, time_step, global_brightness):
         super().__init__(yaml, num_led, time_step, global_brightness)
 
+
     def _animation_callback(self):
         return None
+
+
 
 class Executor:
 
@@ -189,9 +206,9 @@ class Executor:
         self._id = event_yaml['id']
         self._name = event_yaml['name']
         if 'interrupting' in event_yaml.keys():
-            self._priority = event_yaml['interrupting']
+            self._interrupting = event_yaml['interrupting']
         else:
-            self._priority = False
+            self._interrupting = False
 
         animation_keywords = ['front', 'tail']
         if not set(animation_keywords).issubset(event_yaml['animation'].keys()):
@@ -218,17 +235,35 @@ class Executor:
         if panel == 1:
             return self._tail_animation()
 
+
+    def __str__(self):
+        return f'''
+                front:
+                    {self._front_animation}
+                tail:
+                    {self._tail_animation}
+                '''
+
+
     def reset(self):
         self._front_animation.reset()
         self._tail_animation.reset()
 
-    @property
-    def brightness(self, panel):
-        return self._front_animation.brightness()
 
     @property
-    def background(self):
-        return self._background
+    def id(self):
+        return self._id
+        
+
+    @property
+    def brightness(self):
+        return self._front_animation.brightness()
+
+
+    @property
+    def interrupting(self):
+        return self._interrupting
+
 
     @property
     def percent_done(self):
@@ -237,12 +272,10 @@ class Executor:
 
 
 class LEDConfigImporter:
-
     class LEDConfigImporterError(Exception):
         def __init__(self, message='YAML keyword error'):
             self.message = message
             super().__init__(self.message)
-
 
 
     def __init__(self, yaml_path):
@@ -261,13 +294,14 @@ class LEDConfigImporter:
         self._led_switch_pin = self._yaml['led_switch_pin']
         self._led_power_pin = self._yaml['led_power_pin']
         self._imported_animations = {}
+        self._added_animations = {}
 
         for file in self._yaml['event_animations_files']:
             if os.path.isabs(file):
                 self._import_file(file)
             else:
                 src_path = os.path.dirname(__file__)
-                conf_path = os.path.relpath(f'../../config/{file}', src_path)
+                conf_path = os.path.join(src_path, f'../../config/{file}')
                 self._import_file(conf_path)
 
 
@@ -291,44 +325,119 @@ class LEDConfigImporter:
         for event in event_yaml['event']:
             self._imported_animations[(event['id'], event['name'])] = Executor(event, self._num_led, self._time_step, self._global_brightness)
 
+    
+    def add_animation(self, event_yaml):
+        event_yaml = yaml.load(event_yaml, Loader=yaml.Loader)
 
-    def get_animation_by_id(self, id):
-        keys = list(self._imported_animations.keys())
+        if 'event' in event_yaml.keys():
+            id_map = {i : event_yaml['event'][i]['id'] for i in range(len(event_yaml['event']))}
+            if len(id_map.values()) != len(set(id_map.values())):
+                raise LEDConfigImporter.LEDConfigImporterError(f'Events\' IDs aren\'t uniqueue.')
+
+            name_map = {i : event_yaml['event'][i]['name'] for i in range(len(event_yaml['event']))}
+            if len(name_map.values()) != len(set(name_map.values())):
+                raise LEDConfigImporter.LEDConfigImporterError(f'Events\' names aren\'t uniqueue.')
+
+        else:
+            event_yaml = event_yaml['event']
+
+        if set(id_map.values()) & set(self._imported_animations.keys()) or set(id_map.values()) & set(self._added_animations.keys()):
+            raise LEDConfigImporter.LEDConfigImporterError(f'Events\' IDs overlap previous declarations.')
+
+        for event in event_yaml['event']:
+            self._added_animations[(event['id'], event['name'])] = Executor(event, self._num_led, self._time_step, self._global_brightness)
+
+
+    def _get_animation_key_by_id(self, id, animation_list):
+        keys = list(animation_list.keys())
         IDs = (np.array(keys)[:,0]).astype(np.int)
         idx = np.where(IDs == id)[0]
-        if not len(idx):
-            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with ID: {id} is not defined.')
-        else:
-            key = keys[idx[0]]
-            return copy.deepcopy(self._imported_animations[key])
+
+        if len(idx):
+            return keys[idx[0]]
+        return (None, None)
 
 
-    def get_animation_by_name(self, name):
+    def _get_animation_key_by_name(self, name, animation_list):
         keys = list(self._imported_animations.keys())
         names = (np.array(keys)[:,1])
         idx = np.where(names == name)[0]
-        if not len(idx):
-            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with name: {name} is not defined.')
+
+        if len(idx):
+            return keys[idx[0]]
+        return (None, None)
+
+
+    def get_animation_by_id(self, id):
+        key_file = self._get_animation_key_by_id(id, self._imported_animations)
+        key_added = self._get_animation_key_by_id(id, self._added_animations)
+
+        if key_file != (None, None):
+            return copy.deepcopy(self._imported_animations[key_file])
+        elif key_added != (None, None):
+            return copy.deepcopy(self._added_animations[key_added])
         else:
-            key = keys[idx[0]]
-            return copy.deepcopy(self._imported_animations[key])
+            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with ID: {id} is not defined.')
+
+
+    def get_animation_by_name(self, name):
+        key_file = self._get_animation_key_by_name(name, self._imported_animations)
+        key_added = self._get_animation_key_by_name(name, self._added_animations)
+
+        if key_file != (None, None):
+            return copy.deepcopy(self._imported_animations[key_file])
+        elif key_added != (None, None):
+            return copy.deepcopy(self._added_animations[key_added])
+        else:
+            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with name: {name} is not defined.')
+
+
+    def remove_animation_by_id(self, id):
+        key = self._get_animation_key_by_id(id, self._added_animations)
+
+        if key == (None, None):
+            del self._imported_animations[key]
+        else:
+            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with id: {id} is not defined.')
+
+
+    def remove_animation_by_name(self, name):
+        key = self._get_animation_key_by_name(name, self._added_animations)
+
+        if key == (None, None):
+            del self._imported_animations[key]
+        else:
+            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with name: {name} is not defined.')
+
+    def get_animation_key(self, key=None, name=None):
+        if key is not None:
+            return self._get_animation_key_by_name(name, self._added_animations)
+
+        if name is not None:
+            return self._get_animation_key_by_id(id, self._added_animations)
+
+        return (None, None)
 
 
     @property
     def global_brightness(self):
         return self._global_brightness
 
+
     @property
     def num_led(self):
         return self._num_led
+
 
     @property
     def time_step(self):
         return self._time_step
 
+
     @property
     def led_switch_pin(self):
         return self._led_switch_pin
+
 
     @property
     def led_power_pin(self):

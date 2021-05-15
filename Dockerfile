@@ -25,6 +25,7 @@ RUN pip3 install \
 # Create and initialise ROS workspace
 RUN mkdir -p /$ROS_WS/src
 COPY ./panther_lights /$ROS_WS/src/panther_lights
+RUN chmod +x /$ROS_WS/src/panther_lights/scripts/lights_node
 WORKDIR /$ROS_WS
 RUN mkdir build && \
     source /opt/ros/$ROS_DISTRO/setup.bash && \

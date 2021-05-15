@@ -29,11 +29,10 @@ class ControllerInterface():
     LED controller interface
     '''
     def __init__(self, num_led, panel_count, brightness):
-        pass
+        raise NotImplementedError
 
     def set_panel(self, panel_num, panel_frame, brightness):
-        pass
-
+        raise NotImplementedError
 
 
 class VirtualLEDController(ControllerInterface):
@@ -46,6 +45,7 @@ class VirtualLEDController(ControllerInterface):
         self._panel_count = panel_count
         self._global_brightness = brightness
         self._frame = np.zeros((panel_count, num_led, 3))
+        self._panel_states = np.ones(panel_count).astype(np.bool)
 
         self._queue = Queue()
         self._is_running = True
@@ -62,16 +62,17 @@ class VirtualLEDController(ControllerInterface):
         assert 0 <= panel_num < self._panel_count
         assert np.shape(panel_frame)[1] == self._num_led and np.shape(panel_frame)[0] == 3
 
-        if brightness is None:
-            brightness = self._global_brightness
+        if self._panel_states[panel_num]:
+            if brightness is None:
+                brightness = self._global_brightness
 
-        panel_frame = np.array(panel_frame) * (brightness / 255)
+            panel_frame = np.array(panel_frame) * (brightness / 255)
 
-        self._frame[panel_num,:,0] = panel_frame[0]
-        self._frame[panel_num,:,1] = panel_frame[1]
-        self._frame[panel_num,:,2] = panel_frame[2]
+            self._frame[panel_num,:,0] = panel_frame[0]
+            self._frame[panel_num,:,1] = panel_frame[1]
+            self._frame[panel_num,:,2] = panel_frame[2]
 
-        self._queue.put(self._frame)
+            self._queue.put(self._frame)
 
     def _update_anim(self):
 
@@ -85,6 +86,15 @@ class VirtualLEDController(ControllerInterface):
             self._im.set_array(panel_frame.astype(np.uint8))
             plt.pause(0.001)
 
+
+    def set_panel_state(self, panel_num, state):
+        assert 0 <= panel < self._panel_counts
+        self._panel_states[panel_num] = state
+
+
+    def set_brightness(self, bright):
+        self._global_brightness = brightness
+
     def __del__(self):
         self._is_running = False
         self._anim_update_thread.join()
@@ -96,14 +106,14 @@ class HardwareAPA102Controller(ControllerInterface):
     Hardware abstraction of APA102 LEDs used in Panther robot.
     '''
 
-    LED_SWITCH_FRONT_STATE = True   # High - front panel | Low - rear panel
+    LED_SWITCH_FRONT_STATE = True   # High - front panel | Low - tail panel
     LED_POWER_ON_STATE     = False  # active LEDs with low state 
     GLOBAL_MAX_BRIGHTNESS  = 15 
 
     # Assign numbers to panels
     class Panel(Enum):
         FRONT = 0
-        REAR  = 1
+        TAIL  = 1
 
     class ControllerError(Exception):
         '''
@@ -133,6 +143,9 @@ class HardwareAPA102Controller(ControllerInterface):
         self._led_switch_pin = led_switch_pin
         self._led_power_pin = led_power_pin
 
+        self._front_active = True
+        self._tail_active = True
+
         # Setup and activate panels
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._led_switch_pin, GPIO.OUT)
@@ -154,9 +167,11 @@ class HardwareAPA102Controller(ControllerInterface):
 
         # Select panel
         if panel_num == HardwareAPA102Controller.Panel.FRONT:
-            GPIO.output(self._led_switch_pin, HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
-        elif panel_num == HardwareAPA102Controller.Panel.REAR:
-            GPIO.output(self._led_switch_pin, not HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
+            if self._front_active:
+                GPIO.output(self._led_switch_pin, HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
+        elif panel_num == HardwareAPA102Controller.Panel.TAIL:
+            if self._tail_active:
+                GPIO.output(self._led_switch_pin, not HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
         else:
             raise HardwareAPA102Controller.ControllerError('Panther lights have only two panels')
 
@@ -165,6 +180,16 @@ class HardwareAPA102Controller(ControllerInterface):
             self._pixels.set_pixel_rgb(i, panel_frame[i], brightness)
         self._pixels.show()
 
+
+    def set_panel_state(self, panel_num, state):
+        if panel_num == HardwareAPA102Controller.Panel.FRONT:
+            self._front_active = state
+        elif panel_num == HardwareAPA102Controller.Panel.TAIL:
+            self._tail_active = state
+
+    
+    def set_brightness(self, bright):
+        self._global_brightness = brightness
 
     
     def __del__(self):

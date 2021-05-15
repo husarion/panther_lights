@@ -1,120 +1,177 @@
 #!/usr/bin/env python3
 
-import rospy
-from enum import Enum
-from panther_lights.driver import *
-from panther_lights.msg import LightsMessage
-from panther_lights.srv import SetLights, SetLightsResponse
-from panther_lights.srv import SetBrightness, SetBrightnessResponse
-from queue import Queue
-from threading import Event
+import queue
+import time
 import yaml
-import logging
 import os
 
-# class Modes(Enum):
-#     BLINKER_RIGHT = 0
-#     BLINKER_LEFT = 1
-#     BRAKE_FRONT = 2
-#     BRAKE_REAR = 3
-#     BRAKE_BOTH = 4
-#     NORMAL_FORWARD = 5
-#     NORMAL_REVERSING = 6
-#     SKID_RIGHT = 7
-#     SKID_LEFT = 8
-#     ERROR = 9
+import rospy
+from std_srvs.srv import Empty
+from panther_lights.driver import VirtualLEDController, HardwareAPA102Controller
+from panther_lights.executor import PantherLightsAnimationExecutorThread, AnimationLock
+from panther_lights.animation import LEDConfigImporter
+from panther_lights.srv import Brightness, LightsID, LightsName, Animation, PanelState
+
 
 class LightsNode:
-    
-    def __init__(self):
-        self.stop_notifier = Event()
-        self.queue = Queue(10)
-        self.lights = None
-        self.yaml_data = None
-        
-    @staticmethod
-    def find_config_file():
-        paths = os.environ['ROS_PACKAGE_PATH'].split(':')
-        for path in paths:
-            for entry in os.listdir(path):
-                if entry == 'panther_lights':
-                    return os.path.join(path, entry, 'config/panther_lights_animations.yaml')
-        rospy.logerr('No default configuration file found!')
-        return None
+    def __init__(self,
+                 config_path=None,
+                 use_virtual_driver=False):
 
-    def shutdown_cb(self):
-        self.stop_notifier.set()
-        self.lights.join()
+        if config_path is None:
+            config_path = '../config/led_conf.yaml'
 
-    def start(self):
+        src_path = os.path.dirname(__file__)
+        conf_path = os.path.join(src_path, config_path)
+
+        self._led_config_importer = LEDConfigImporter(conf_path)
+
+        self._time_step = self._led_config_importer.time_step
+        self._num_led = self._led_config_importer.num_led
+        self._global_brightness = self._led_config_importer.time_step
+
+        self._driver = None
+
+        if use_virtual_driver:
+            try:
+                import matplotlib
+            except ImportError:
+                raise ImportError('Unable to import matplotlib. Make sure you have installed matplotlib.')
+            self._driver = VirtualLEDController(num_led=self._num_led)
+
+        else:
+            try:
+                from apa102_pi.driver import apa102 
+                import RPi.GPIO as GPIO
+            except ImportError:
+                raise ImportError('No hardware specific packages installed. Make sure you are running this node on Raspberry pi.')
+            self._driver = HardwareAPA102Controller(num_led=self._num_led,
+                                                    led_switch_pin=self._led_config_importer.led_switch_pin,
+                                                    led_power_pin=self._led_config_importer.led_power_pin,
+                                                    brightness=self._global_brightness)
+
+
+        self._queue = queue.Queue()
+        self._emergency_lock = AnimationLock()
+        self._interrupt_lock = AnimationLock()
+        self._exector = PantherLightsAnimationExecutorThread(self._queue, self._emergency_lock, self._interrupt_lock,
+                                                             self._driver, self._time_step)
+
+
+        self._system_indicators = True
+        self._emergency_animation_id = (-1,-2,-3)
+
+
         rospy.init_node('lights_node')
-        
-        # check os.environ for install path
-        yaml_file_path = rospy.get_param('~config_file', None)
-        if yaml_file_path is None:
-            rospy.loginfo("Parameter \"config_file\" not defined. Using default config file.")
-            yaml_file_path = LightsNode.find_config_file()
-            if yaml_file_path is None:
-                exit(1)
-        
-        with open(yaml_file_path) as file:
-            self.yaml_data = yaml.load(file, Loader=yaml.Loader)
-            # logging.info(yaml.dump(self.yaml_data))
-        
-        self.lights = PantherLights(event=self.stop_notifier, queue=self.queue, 
-        num_leds = self.yaml_data['num_leds'], brightness = self.yaml_data['global_brightness'])
 
-        rospy.on_shutdown(self.shutdown_cb)
-        self.lights.start()
-        self.__serv_lights = rospy.Service('set_panther_lights', SetLights, self.set_lights_callback)
-        self.__serv_brightness = rospy.Service('set_panther_lights_brightness', SetBrightness, self.set_brightness_callback)
+        self._rate = rospy.Rate(10)
 
-    def set_brightness_callback(self,msg):
-        info_str = "Data %f" % msg.brightness
-        rospy.loginfo(info_str)
+        self._add_animation_service = rospy.Service('add_animation', Animation, self._add_animation)
+        self._set_lights_by_name_service = rospy.Service('set_lights_by_name', LightsName, self._set_lights_by_name)
+        self._set_lights_by_id_service = rospy.Service('set_lights_by_id', LightsID, self._set_lights_by_id)
+        self._remove_animation_by_name_service = rospy.Service('remove_animation_by_name', LightsName, self._remove_animation_by_name)
+        self._remove_animation_by_id_service = rospy.Service('remove_animation_by_id', LightsID, self._remove_animation_by_id)
+        self._disable_system_indicators_service = rospy.Service('disable_system_indicators', Empty, self._disable_system_indicators)
+        self._enable_system_indicators_service = rospy.Service('enable_system_indicators', Empty, self._enable_system_indicators)
+        self._set_brightness_service = rospy.Service('set_brightness', Brightness, self._set_brightness)
+        self._set_panel_state_service = rospy.Service('set_panel_state', PanelState, self._set_panel_state)
 
-        self.queue.put(PantherLights.BrightnessMessage(
-            msg.brightness
-        ))
 
-        return SetBrightnessResponse(info_str)
+    def run(self):
+        rospy.loginfo('panther_lights is starting')
+        self._exector.start()
 
-    def set_lights_callback(self, msg):
-        info_str = "Data %d" % msg.animation
-        rospy.loginfo(info_str)
+        while not rospy.is_shutdown():
+            self._rate.sleep()
+            
+        self._exector.join()
+        del self._driver
 
-        for anim in self.yaml_data['animations']:
-            if anim['id'] == msg.animation:
 
-                # try to parse colors
-                if len(msg.custom_color) != 0:
-                    tags = msg.custom_color.split(' ')
-                    self.queue.put(PantherLights.AnimationMessage(
-                        anim['front']['type'],
-                        int(tags[0],base=16),
-                        anim['back']['type'],
-                        int(tags[1],base=16),
-                    ))
-                else:
-                    self.queue.put(PantherLights.AnimationMessage(
-                        anim['front']['type'],
-                        anim['front']['color'],
-                        anim['back']['type'],
-                        anim['back']['color']
-                    ))
-                break 
-        return SetLightsResponse(info_str)        
+    def _add_animation(self, event_yaml):
+        try:
+            self._led_config_importer.add_animation(event_yaml.animation)
+        except yaml.YAMLError:
+            return f'YAML error'
+        except Exception as e:
+            return f'{e}'
+        return f'animation added'
 
-def main():
+
+    def _remove_animation_by_name(self, anim):
+        try:
+            key = self._led_config_importer.get_animation_key(id=anim.name)
+            self._led_config_importer.remove_animation_by_name(anim.name)
+        except Exception as e:
+            return f'{e}'
+        return f'successfully removed animation: {key}'
+
+
+    def _remove_animation_by_id(self, anim):
+        try:
+            key = self._led_config_importer.get_animation_key(id=anim.id)
+            self._led_config_importer.remove_animation_by_id(anim.id)
+        except Exception as e:
+            return f'{e}'
+        return f'successfully removed animation: {key}'
+
+
+    def _set_lights_by_name(self, anim):
+        try:
+            animation = self._led_config_importer.get_animation_by_name(anim.name)
+        except Exception as e:
+            return f'{e}'
+
+        if animation.id in self._emergency_animation_id:
+            self._emergency_lock.set_executor(animation)
+        elif animation.interrupting:
+            self._interrupt_lock.set_executor(animation)
+        else:
+            self._queue.put(animation)
+
+        return f'{animation}'
+
+
+    def _set_lights_by_id(self, anim):
+        try:
+            animation = self._led_config_importer.get_animation_by_name(anim.name)
+        except Exception as e:
+            return f'{e}'
+
+        if anim.id in self._emergency_animation_id:
+            self._emergency_lock.set_executor(animation)
+        elif animation.is_interrupting:
+            self._interrupt_lock.set_executor(animation)
+        else:
+            self._queue.put(animation)
+
+        return f'{animation}'
+
+
+    def _disable_system_indicators(self):
+        self._system_indicators = False
+        return 'system indicators: disabled'
+
+
+    def _enable_system_indicators(self):
+        self._system_indicators = True
+        return 'system indicators: enabled'
+
+
+    def _set_brightness(self, value):
+        self._driver.set_brightness(value.brightness)
+        return f'brightness: {value.brightness}'
+
+    def _set_panel_state(self, panels):
+        self._driver.set_panel_state(0, panels.front)
+        self._driver.set_panel_state(1, panels.tail)
+
+
+
+if __name__ == '__main__':
     try:
-        format = "%(asctime)s: %(message)s"
-        logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
-        lights_node = LightsNode()
-        lights_node.start()
-        rospy.spin()
-
-    except (rospy.ROSInterruptException):
-        rospy.signal_shutdown("Interrupt")
-
-if __name__ == "__main__":
-    main()
+        lights = LightsNode(use_virtual_driver=True)
+        lights.run()
+    except Exception as e:
+        rospy.logerr(f'panther_lights error: {e}')
+        exit(1)
