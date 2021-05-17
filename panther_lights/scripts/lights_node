@@ -35,8 +35,10 @@ class LightsNode:
         if use_virtual_driver:
             try:
                 import matplotlib
-            except ImportError:
-                raise ImportError('Unable to import matplotlib. Make sure you have installed matplotlib.')
+                import matplotlib.pyplot as plt
+                import warnings
+            except ImportError as e:
+                raise ImportError(f'Unable to import matplotlib. Make sure you have installed matplotlib. {e}')
             self._driver = VirtualLEDController(num_led=self._num_led)
 
         else:
@@ -90,37 +92,45 @@ class LightsNode:
 
     def _add_animation(self, event_yaml):
         try:
-            self._led_config_importer.add_animation(event_yaml.animation)
+            self._led_config_importer.add_animation(event_yaml.yaml)
         except yaml.YAMLError:
             return f'YAML error'
-        except Exception as e:
+        except LEDConfigImporter.LEDConfigImporterError as e:
             return f'{e}'
-        return f'animation added'
+        except Exception as e:
+            return f'failed to add animation'
+        return f'successfully animation added'
 
 
     def _remove_animation_by_name(self, anim):
         try:
-            key = self._led_config_importer.get_animation_key(id=anim.name)
-            self._led_config_importer.remove_animation_by_name(anim.name)
-        except Exception as e:
+            key = self._led_config_importer.get_animation_key(name=anim.name)
+            self._led_config_importer.remove_animation(name=anim.name)
+        except LEDConfigImporter.LEDConfigImporterError as e:
             return f'{e}'
+        except Exception as e:
+            return f'failed to remove animation'
         return f'successfully removed animation: {key}'
 
 
     def _remove_animation_by_id(self, anim):
         try:
             key = self._led_config_importer.get_animation_key(id=anim.id)
-            self._led_config_importer.remove_animation_by_id(anim.id)
-        except Exception as e:
+            self._led_config_importer.remove_animation(id=anim.id)
+        except LEDConfigImporter.LEDConfigImporterError as e:
             return f'{e}'
+        except Exception as e:
+            return f'failed to remove animation'
         return f'successfully removed animation: {key}'
-
+        
 
     def _set_lights_by_name(self, anim):
         try:
-            animation = self._led_config_importer.get_animation_by_name(anim.name)
-        except Exception as e:
+            animation = self._led_config_importer.get_animation(name=anim.name)
+        except LEDConfigImporter.LEDConfigImporterError as e:
             return f'{e}'
+        except Exception as e:
+            return f'failed to set lights'
 
         if animation.id in self._emergency_animation_id:
             self._emergency_lock.set_executor(animation)
@@ -134,13 +144,16 @@ class LightsNode:
 
     def _set_lights_by_id(self, anim):
         try:
-            animation = self._led_config_importer.get_animation_by_name(anim.name)
-        except Exception as e:
+            rospt
+            animation = self._led_config_importer.get_animation(id=anim.id)
+        except LEDConfigImporter.LEDConfigImporterError as e:
             return f'{e}'
+        except Exception as e:
+            return f'failed to set lights'
 
-        if anim.id in self._emergency_animation_id:
+        if animation.id in self._emergency_animation_id:
             self._emergency_lock.set_executor(animation)
-        elif animation.is_interrupting:
+        elif animation.interrupting:
             self._interrupt_lock.set_executor(animation)
         else:
             self._queue.put(animation)

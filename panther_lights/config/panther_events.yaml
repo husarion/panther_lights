@@ -3,7 +3,7 @@ event:
     name: 'E-STOP'
     animation:
       both:
-        animation_id: 0
+        animation_id: -1
         duration: 3
         color: [255,255,255]
         range: [0, 47]
@@ -12,15 +12,15 @@ event:
     name: 'TURN-LEFT'
     animation:
       front:
-        animation_id: 0
-        duration: 1
+        animation_id: -1
+        duration: -1
         wait_after_sequence: 0.5
         repeat: 2
         keep_state: True
         color: 0x0F0AFF
         range: [0, 47]
       tail:
-        animation_id: 0
+        animation_id: -1
         duration: 3
         keep_state: False
         color: [0,255,0]
@@ -31,7 +31,7 @@ event:
     interrupting: True
     animation:
       both:
-        animation_id: 0
+        animation_id: -1
         duration: 2
         color: [255,0,255]
         range: [0, 47]
@@ -40,7 +40,7 @@ event:
     name: 'SLIDE-FIVE'
     animation:
       both:
-        animation_id: 0
+        animation_id: -1
         duration: 1
         wait_after_sequence: 0
         repeat: 2

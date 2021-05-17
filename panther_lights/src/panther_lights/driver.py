@@ -8,8 +8,6 @@ from enum import Enum
 
 
 try:
-    import matplotlib
-    matplotlib.use('TkAgg')
     import matplotlib.pyplot as plt
     import warnings
     warnings.filterwarnings("ignore")

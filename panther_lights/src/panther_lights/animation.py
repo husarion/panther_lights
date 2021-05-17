@@ -18,7 +18,7 @@ class Animation:
 
         animation_keywords = ['duration', 'color']
         if not set(animation_keywords).issubset(anim_yaml.keys()):
-            raise Animation.AnimationYAMLError('No animation specific parameters in YAML')
+            raise Animation.AnimationYAMLError('no animation specific parameters in YAML')
 
         self._duration = anim_yaml['duration']
 
@@ -33,7 +33,7 @@ class Animation:
         if 'repeat' in anim_yaml.keys():
             self._loops = anim_yaml['repeat']
             if self._loops <= 0:
-                raise Animation.AnimationYAMLError('Repeat count can\'t be negative nor equal to zero.')
+                raise Animation.AnimationYAMLError('repeat count can\'t be negative nor equal to zero.')
         else:
             self._loops = 1
 
@@ -45,7 +45,7 @@ class Animation:
         if 'wait_after_sequence' in anim_yaml.keys():
             self._wait_after_sequence = anim_yaml['wait_after_sequence']
             if self._wait_after_sequence < 0:
-                raise Animation.AnimationYAMLError('Wait_after_sequence count can\'t be negative.')
+                raise Animation.AnimationYAMLError('wait_after_sequence count can\'t be negative.')
         else:
             self._wait_after_sequence = 0
 
@@ -151,7 +151,7 @@ class Animation:
 
 
 class Slide(Animation):
-    ANIMATION_ID = 0
+    ANIMATION_ID = -1
     def __init__(self, anim_yaml, num_led, time_step, global_brightness):
         super().__init__(anim_yaml, num_led, time_step, global_brightness)
 
@@ -180,28 +180,58 @@ class Slide(Animation):
 
 
 
-class Delay(Animation):
-    ANIMATION_ID = -1
-    def __init__(self, yaml, num_led, time_step, global_brightness):
-        super().__init__(yaml, num_led, time_step, global_brightness)
+class DoubleSlide(Animation):
+    ANIMATION_ID = -2
+    def __init__(self, anim_yaml, num_led, time_step, global_brightness):
+        super().__init__(anim_yaml, num_led, time_step, global_brightness)
+
+        if 'center' in anim_yaml.keys():
+            self._center = anim_yaml['center']
+            if not (0 <= self._width < num_led):
+                raise Animation.AnimationYAMLError('center has to be in LED count bounds.')
+        else:
+            self._ = num_led / 2
+
+
+        if 'width' in anim_yaml.keys():
+            self._width = anim_yaml['width']
+            if self._width <= 0:
+                raise Animation.AnimationYAMLError('width can\'t be negative.')
+        else:
+            self._width = -1
+
+        if 'invert' in anim_yaml.keys():
+            self._invert = bool(anim_yaml['invert'])
+        else:
+            self._invert = False
+
+        self._frame[:,self._start_point] = np.array(self._color)
+        self._update_rate = np.floor(self._sequence_time / np.abs(self._start_point - self._end_point + 1))
 
 
     def _animation_callback(self):
-        return None
+        if (self._frame_counter % self._update_rate) == 0:
+            self._frame = np.roll(self._frame, self._direction, axis=1)
 
+        return self._frame.astype(np.uint8)
+
+
+    def reset(self):
+        super().reset()
+        self._frame[:,self._start_point] = np.array(self._color)
 
 
 class Executor:
 
     BASIC_ANIMATIONS = {
-        Delay.ANIMATION_ID : Delay,
-        Slide.ANIMATION_ID : Slide
+        Slide.ANIMATION_ID : Slide,
+        DoubleSlide.ANIMATION_ID : DoubleSlide
     }
 
     def __init__(self, event_yaml, num_led, time_step, global_brightness):
         global_keywords = ['id', 'name', 'animation']
         if not set(global_keywords).issubset(event_yaml.keys()):
-            raise LEDConfigImporter.LEDConfigImporterError(f'No {set(global_keywords) - set(event_yaml.keys())} in {event_yaml}')
+            raise LEDConfigImporter.LEDConfigImporterError(f'no {set(global_keywords) - set(event_yaml.keys())} in {event_yaml}')
 
         self._id = event_yaml['id']
         self._name = event_yaml['name']
@@ -213,19 +243,26 @@ class Executor:
         animation_keywords = ['front', 'tail']
         if not set(animation_keywords).issubset(event_yaml['animation'].keys()):
             if 'both' not in event_yaml['animation'].keys():
-                raise LEDConfigImporter.LEDConfigImporterError(f'No {(set(animation_keywords + ["both"])) - set(event_yaml["animation"].keys())} in {event_yaml}')
+                raise LEDConfigImporter.LEDConfigImporterError(f'no {(set(animation_keywords + ["both"])) - set(event_yaml["animation"].keys())} in {event_yaml}')
             else:
                 if 'animation_id' not in event_yaml['animation']['both'].keys():
-                    raise LEDConfigImporter.LEDConfigImporterError(f'No id for light animations in {event_yaml}')
+                    raise LEDConfigImporter.LEDConfigImporterError(f'no id for light animations in {event_yaml}')
+                if event_yaml['animation']['both']['animation_id'] not in Executor.BASIC_ANIMATIONS.keys():
+                    raise LEDConfigImporter.LEDConfigImporterError(f'no basic animation with ID: {event_yaml["animation"]["both"]["animation_id"]} defined')
                 self._front_animation = Executor.BASIC_ANIMATIONS[event_yaml['animation']['both']['animation_id']](event_yaml['animation']['both'], num_led, time_step, global_brightness)
                 self._tail_animation = copy.copy(self._front_animation)
         else:
             if 'animation_id' not in event_yaml['animation']['front'].keys():
-                raise LEDConfigImporter.LEDConfigImporterError(f'No id for front animation in {event_yaml}')
+                raise LEDConfigImporter.LEDConfigImporterError(f'no id for front animation in {event_yaml}')
+            if event_yaml['animation']['front']['animation_id'] not in Executor.BASIC_ANIMATIONS.keys():
+                raise LEDConfigImporter.LEDConfigImporterError(f'no basic animation with ID: {event_yaml["animation"]["front"]["animation_id"]} defined')
             self._front_animation = Executor.BASIC_ANIMATIONS[event_yaml['animation']['front']['animation_id']](event_yaml['animation']['front'], num_led, time_step, global_brightness)
 
             if 'animation_id' not in event_yaml['animation']['tail'].keys():
-                raise LEDConfigImporter.LEDConfigImporterError(f'No id for tail animation in {event_yaml}')
+                raise LEDConfigImporter.LEDConfigImporterError(f'no id for tail animation in {event_yaml}')
+            if event_yaml['animation']['tail']['animation_id'] not in Executor.BASIC_ANIMATIONS.keys():
+                raise LEDConfigImporter.LEDConfigImporterError(f'no basic animation with ID: {event_yaml["animation"]["tail"]["animation_id"]} defined')
+            
             self._tail_animation = Executor.BASIC_ANIMATIONS[event_yaml['animation']['tail']['animation_id']](event_yaml['animation']['tail'], num_led, time_step, global_brightness)
 
 
@@ -243,6 +280,10 @@ class Executor:
                 tail:
                     {self._tail_animation}
                 '''
+
+    def _check_id(self, id):
+        if id in BASIC_ANIMATIONS.keys():
+            return 
 
 
     def reset(self):
@@ -279,6 +320,7 @@ class LEDConfigImporter:
 
 
     def __init__(self, yaml_path):
+        self._husarion_animations = tuple([(10, 'E-STOP')])
 
         self._yaml = yaml.load(open(yaml_path,'r'), Loader=yaml.Loader)
 
@@ -325,6 +367,9 @@ class LEDConfigImporter:
         for event in event_yaml['event']:
             self._imported_animations[(event['id'], event['name'])] = Executor(event, self._num_led, self._time_step, self._global_brightness)
 
+        if not set(self._husarion_animations).issubset(self._imported_animations.keys()):
+            raise LEDConfigImporter.LEDConfigImporterError(f'No {set(self._husarion_animations) - set(self._imported_animations.keys())} in {self._imported_animations.keys()}')
+
     
     def add_animation(self, event_yaml):
         event_yaml = yaml.load(event_yaml, Loader=yaml.Loader)
@@ -338,85 +383,74 @@ class LEDConfigImporter:
             if len(name_map.values()) != len(set(name_map.values())):
                 raise LEDConfigImporter.LEDConfigImporterError(f'Events\' names aren\'t uniqueue.')
 
+            if set(id_map.values()) & set(self._imported_animations.keys()) or set(id_map.values()) & set(self._added_animations.keys()):
+                raise LEDConfigImporter.LEDConfigImporterError(f'Events\' IDs overlap previous declarations.')
+
+            for event in event_yaml['event']:
+                self._added_animations[(event['id'], event['name'])] = Executor(event, self._num_led, self._time_step, self._global_brightness)
+
         else:
-            event_yaml = event_yaml['event']
+            self._added_animations[(event_yaml['id'], event_yaml['name'])] = Executor(event_yaml, self._num_led, self._time_step, self._global_brightness)
 
-        if set(id_map.values()) & set(self._imported_animations.keys()) or set(id_map.values()) & set(self._added_animations.keys()):
-            raise LEDConfigImporter.LEDConfigImporterError(f'Events\' IDs overlap previous declarations.')
+        
 
-        for event in event_yaml['event']:
-            self._added_animations[(event['id'], event['name'])] = Executor(event, self._num_led, self._time_step, self._global_brightness)
+    def _get_animation_key(self, animation_list, id=None, name=None):
+        if animation_list:
+            if id is not None:
+                keys = list(animation_list.keys())
+                IDs = (np.array(keys)[:,0]).astype(np.int)
+                idx = np.where(IDs == id)[0]
 
+            elif name is not None:
+                keys = list(animation_list.keys())
+                names = (np.array(keys)[:,1])
+                idx = np.where(names == name)[0]
+            
+            else:
+                raise LEDConfigImporter.LEDConfigImporterError(f'ID and name can\'t be none at the same time')
 
-    def _get_animation_key_by_id(self, id, animation_list):
-        keys = list(animation_list.keys())
-        IDs = (np.array(keys)[:,0]).astype(np.int)
-        idx = np.where(IDs == id)[0]
-
-        if len(idx):
-            return keys[idx[0]]
-        return (None, None)
-
-
-    def _get_animation_key_by_name(self, name, animation_list):
-        keys = list(self._imported_animations.keys())
-        names = (np.array(keys)[:,1])
-        idx = np.where(names == name)[0]
-
-        if len(idx):
-            return keys[idx[0]]
-        return (None, None)
+            if len(idx):
+                return keys[idx[0]]
+        return None
 
 
-    def get_animation_by_id(self, id):
-        key_file = self._get_animation_key_by_id(id, self._imported_animations)
-        key_added = self._get_animation_key_by_id(id, self._added_animations)
+    def get_animation(self, id=None, name=None):
+        key_file = self._get_animation_key(self._imported_animations, id=id, name=name)
+        key_added = self._get_animation_key(self._added_animations, id=id, name=name)
 
-        if key_file != (None, None):
+        if key_file is not None:
             return copy.deepcopy(self._imported_animations[key_file])
-        elif key_added != (None, None):
+        elif key_added is not None:
             return copy.deepcopy(self._added_animations[key_added])
+        elif id is not None:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined.')
         else:
-            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with ID: {id} is not defined.')
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined.')
 
 
-    def get_animation_by_name(self, name):
-        key_file = self._get_animation_key_by_name(name, self._imported_animations)
-        key_added = self._get_animation_key_by_name(name, self._added_animations)
+    def remove_animation(self, id=None, name=None):
+        key = self._get_animation_key(self._added_animations, id=id, name=name)
 
-        if key_file != (None, None):
-            return copy.deepcopy(self._imported_animations[key_file])
-        elif key_added != (None, None):
-            return copy.deepcopy(self._added_animations[key_added])
-        else:
-            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with name: {name} is not defined.')
-
-
-    def remove_animation_by_id(self, id):
-        key = self._get_animation_key_by_id(id, self._added_animations)
-
-        if key == (None, None):
-            del self._imported_animations[key]
-        else:
-            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with id: {id} is not defined.')
-
-
-    def remove_animation_by_name(self, name):
-        key = self._get_animation_key_by_name(name, self._added_animations)
-
-        if key == (None, None):
-            del self._imported_animations[key]
-        else:
-            raise LEDConfigImporter.LEDConfigImporterError(f'Animation with name: {name} is not defined.')
-
-    def get_animation_key(self, key=None, name=None):
         if key is not None:
-            return self._get_animation_key_by_name(name, self._added_animations)
+            del self._added_animations[key]
+        elif id is not None:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined.')
+        else:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined.')
 
-        if name is not None:
-            return self._get_animation_key_by_id(id, self._added_animations)
 
-        return (None, None)
+    def get_animation_key(self, id=None, name=None):
+        key_file = self._get_animation_key(self._imported_animations, id=id, name=name)
+        key_added = self._get_animation_key(self._added_animations, id=id, name=name)
+
+        if key_file is not None:
+            return key_file
+        elif key_added is not None:
+            return key_added
+        elif id is not None:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined.')
+        else:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined.')
 
 
     @property
