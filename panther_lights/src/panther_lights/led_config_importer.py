@@ -1,0 +1,141 @@
+import numpy as np
+import copy
+import yaml
+import os
+
+from .animations import *
+from .executor import Executor
+
+
+class LEDConfigImporter:
+    class LEDConfigImporterError(Exception):
+        def __init__(self, message='YAML keyword error'):
+            self.message = message
+            super().__init__(self.message)
+
+
+    def __init__(self, yaml_path):
+        self._husarion_animations = tuple([(10, 'E-STOP')])
+
+        self._yaml = yaml.load(open(yaml_path,'r'), Loader=yaml.Loader)
+
+        self._yaml_path = yaml_path
+
+        global_keywords = ['global_brightness', 'num_led', 'time_step', 'led_switch_pin', 'led_power_pin', 'event_animations_files']
+        if not set(global_keywords).issubset(self._yaml.keys()):
+            raise LEDConfigImporter.LEDConfigImporterError(f'No {set(global_keywords) - set(self._yaml.keys())} in {self._yaml_path}')
+
+        self._global_brightness = self._yaml['global_brightness']
+        self._num_led = self._yaml['num_led']
+        self._time_step = self._yaml['time_step']
+        self._led_switch_pin = self._yaml['led_switch_pin']
+        self._led_power_pin = self._yaml['led_power_pin']
+        self._imported_animations = {}
+        self._added_animations = {}
+
+        for file in self._yaml['event_animations_files']:
+            if os.path.isabs(file):
+                self._import_file(file)
+            else:
+                src_path = os.path.dirname(__file__)
+                conf_path = os.path.join(src_path, f'../../config/{file}')
+                self._import_file(conf_path)
+
+
+    def _import_file(self, file):
+        event_yaml = yaml.load(open(file,'r'), Loader=yaml.Loader)
+
+        if 'event' not in event_yaml.keys():
+            raise LEDConfigImporter.LEDConfigImporterError(f'No \'event\' in {file}.')
+
+        id_map = {i : event_yaml['event'][i]['id'] for i in range(len(event_yaml['event']))}
+        if len(id_map.values()) != len(set(id_map.values())):
+            raise LEDConfigImporter.LEDConfigImporterError(f'Events\' IDs in {file} aren\'t uniqueue.')
+
+        name_map = {i : event_yaml['event'][i]['name'] for i in range(len(event_yaml['event']))}
+        if len(name_map.values()) != len(set(name_map.values())):
+            raise LEDConfigImporter.LEDConfigImporterError(f'Events\' names in {file} aren\'t uniqueue.')
+
+        if set(id_map.values()) & set(self._imported_animations.keys()):
+            raise LEDConfigImporter.LEDConfigImporterError(f'Events\' IDs in {file} overlap previous ID declarations.')
+
+        for event in event_yaml['event']:
+            self._imported_animations[(event['id'], event['name'])] = Executor(event, self._num_led, self._time_step, self._global_brightness)
+
+        if not set(self._husarion_animations).issubset(self._imported_animations.keys()):
+            raise LEDConfigImporter.LEDConfigImporterError(f'No {set(self._husarion_animations) - set(self._imported_animations.keys())} in {self._imported_animations.keys()}')
+
+        
+
+    def _get_animation_key(self, animation_list, id=None, name=None):
+        if animation_list:
+            if id is not None:
+                keys = list(animation_list.keys())
+                IDs = (np.array(keys)[:,0]).astype(np.int)
+                idx = np.where(IDs == id)[0]
+
+            elif name is not None:
+                keys = list(animation_list.keys())
+                names = (np.array(keys)[:,1])
+                idx = np.where(names == name)[0]
+            
+            else:
+                raise LEDConfigImporter.LEDConfigImporterError(f'ID and name can\'t be none at the same time')
+
+            if len(idx):
+                return keys[idx[0]]
+        return None
+
+
+    def get_animation(self, id=None, name=None):
+        key_file = self._get_animation_key(self._imported_animations, id=id, name=name)
+        key_added = self._get_animation_key(self._added_animations, id=id, name=name)
+
+        if key_file is not None:
+            return copy.deepcopy(self._imported_animations[key_file])
+        elif key_added is not None:
+            return copy.deepcopy(self._added_animations[key_added])
+        elif id is not None:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined.')
+        else:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined.')
+
+
+    def get_animation_key(self, id=None, name=None):
+        key_file = self._get_animation_key(self._imported_animations, id=id, name=name)
+        key_added = self._get_animation_key(self._added_animations, id=id, name=name)
+
+        if key_file is not None:
+            return key_file
+        elif key_added is not None:
+            return key_added
+        elif id is not None:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined.')
+        else:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined.')
+
+
+    @property
+    def global_brightness(self):
+        return self._global_brightness
+
+
+    @property
+    def num_led(self):
+        return self._num_led
+
+
+    @property
+    def time_step(self):
+        return self._time_step
+
+
+    @property
+    def led_switch_pin(self):
+        return self._led_switch_pin
+
+
+    @property
+    def led_power_pin(self):
+        return self._led_power_pin
+                

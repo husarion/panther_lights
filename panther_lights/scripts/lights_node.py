@@ -8,8 +8,8 @@ import os
 import rospy
 from std_srvs.srv import Empty
 from panther_lights.driver import VirtualLEDController, HardwareAPA102Controller
-from panther_lights.executor import PantherLightsAnimationExecutorThread, AnimationLock
-from panther_lights.animation import LEDConfigImporter
+from panther_lights.panther_thread import PantherLightsAnimationExecutorThread, AnimationLock
+from panther_lights.led_config_importer import LEDConfigImporter
 from panther_lights.srv import Brightness, LightsID, LightsName, Animation, PanelState
 
 
@@ -68,11 +68,8 @@ class LightsNode:
 
         self._rate = rospy.Rate(10)
 
-        self._add_animation_service = rospy.Service('add_animation', Animation, self._add_animation)
         self._set_lights_by_name_service = rospy.Service('set_lights_by_name', LightsName, self._set_lights_by_name)
         self._set_lights_by_id_service = rospy.Service('set_lights_by_id', LightsID, self._set_lights_by_id)
-        self._remove_animation_by_name_service = rospy.Service('remove_animation_by_name', LightsName, self._remove_animation_by_name)
-        self._remove_animation_by_id_service = rospy.Service('remove_animation_by_id', LightsID, self._remove_animation_by_id)
         self._disable_system_indicators_service = rospy.Service('disable_system_indicators', Empty, self._disable_system_indicators)
         self._enable_system_indicators_service = rospy.Service('enable_system_indicators', Empty, self._enable_system_indicators)
         self._set_brightness_service = rospy.Service('set_brightness', Brightness, self._set_brightness)
@@ -80,48 +77,14 @@ class LightsNode:
 
 
     def run(self):
-        rospy.loginfo('panther_lights is starting')
         self._exector.start()
 
+        rospy.loginfo('panther_lights started')
         while not rospy.is_shutdown():
             self._rate.sleep()
             
         self._exector.join()
         del self._driver
-
-
-    def _add_animation(self, event_yaml):
-        try:
-            self._led_config_importer.add_animation(event_yaml.yaml)
-        except yaml.YAMLError:
-            return f'YAML error'
-        except LEDConfigImporter.LEDConfigImporterError as e:
-            return f'{e}'
-        except Exception as e:
-            return f'failed to add animation'
-        return f'successfully animation added'
-
-
-    def _remove_animation_by_name(self, anim):
-        try:
-            key = self._led_config_importer.get_animation_key(name=anim.name)
-            self._led_config_importer.remove_animation(name=anim.name)
-        except LEDConfigImporter.LEDConfigImporterError as e:
-            return f'{e}'
-        except Exception as e:
-            return f'failed to remove animation'
-        return f'successfully removed animation: {key}'
-
-
-    def _remove_animation_by_id(self, anim):
-        try:
-            key = self._led_config_importer.get_animation_key(id=anim.id)
-            self._led_config_importer.remove_animation(id=anim.id)
-        except LEDConfigImporter.LEDConfigImporterError as e:
-            return f'{e}'
-        except Exception as e:
-            return f'failed to remove animation'
-        return f'successfully removed animation: {key}'
         
 
     def _set_lights_by_name(self, anim):
@@ -139,12 +102,11 @@ class LightsNode:
         else:
             self._queue.put(animation)
 
-        return f'{animation}'
+        return f'success'
 
 
     def _set_lights_by_id(self, anim):
         try:
-            rospt
             animation = self._led_config_importer.get_animation(id=anim.id)
         except LEDConfigImporter.LEDConfigImporterError as e:
             return f'{e}'
@@ -158,7 +120,7 @@ class LightsNode:
         else:
             self._queue.put(animation)
 
-        return f'{animation}'
+        return f'success'
 
 
     def _disable_system_indicators(self):

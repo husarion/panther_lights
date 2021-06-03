@@ -1,97 +1,66 @@
-import logging
-from threading import Thread, Lock
-import time
-import queue
+import numpy as np
+import copy
+import yaml
+import os
+
+from .animations import *
+
+class Executor:
+    class ExecuterError(Exception):
+        def __init__(self, message='YAML keyword error'):
+            self.message = message
+            super().__init__(self.message)
+
+    def __init__(self, event_yaml, num_led, time_step, global_brightness):
+        self._id = event_yaml['id']
+        self._name = event_yaml['name']
+        if 'interrupting' in event_yaml.keys():
+            self._interrupting = event_yaml['interrupting']
+        else:
+            self._interrupting = False
 
 
-class AnimationLock:
-    def __init__(self):
-        self._lock = Lock()
-        self._animation = None
+        if 'both' in event_yaml['animation'].keys():
+            self._front_animation = BASIC_ANIMATIONS[event_yaml['animation']['both']['animation_name']](event_yaml['animation']['both'], num_led, time_step, global_brightness)
+            self._tail_animation = copy.copy(self._front_animation)
+        elif 'front' in event_yaml['animation'].keys() and 'tail' in event_yaml['animation'].keys():
+            self._front_animation = BASIC_ANIMATIONS[event_yaml['animation']['front']['animation_name']](event_yaml['animation']['front'], num_led, time_step, global_brightness)
+            self._tail_animation = BASIC_ANIMATIONS[event_yaml['animation']['tail']['animation_name']](event_yaml['animation']['tail'], num_led, time_step, global_brightness)
+        else:
+            raise Executor.ExecuterError(f'no {(set(["front", "tail", "both"])) - set(event_yaml["animation"].keys())} in {event_yaml}')
 
-    def set_executor(self, animation):
-        with self._lock:
-            self._animation = animation
-
-    def get_executor(self):
-        if not self._lock.locked():
-            with self._lock:
-                exec = self._animation 
-                self._animation = None
-            return exec
-        return None
+    def __call__(self, panel):
+        if panel == 0:
+            return self._front_animation()
+        if panel == 1:
+            return self._tail_animation()
 
 
-class PantherLightsAnimationExecutorThread(Thread):
-
-    def __init__(self,
-                 queue,
-                 emergency_lock,
-                 interrupt_lock,
-                 driver,
-                 time_step=0.01):
-
-        '''Initialize PantherLights thread'''
-        super().__init__(name='panther_lights_thread')
-
-        self._queue = queue
-        self._emergency_lock = emergency_lock
-        self._interrupt_lock = interrupt_lock
-        self._time_step = time_step
-        self._driver = driver
-
-        self._is_running = True
-        self._background_animation = []
-        self._switch_background_animation = False
-        self._executor_queue = []
+    def _check_id(self, id):
+        if id in BASIC_ANIMATIONS.keys():
+            return 
 
 
-    def join(self):
-        self._is_running = False
-   
-   
-    def run(self):
-        logging.info("Thread %s: started!", self._name)
-
-        while self._is_running:
-            start_time = time.time()
-            self._queue_reader()
-
-            if self._executor_queue:
-                frame_front = self._executor_queue[0](0)
-                if frame_front is not None:
-                    self._driver.set_panel(0, frame_front)
-
-                frame_tail = self._executor_queue[0](1)
-                if frame_tail is not None:
-                    self._driver.set_panel(1, frame_tail)
-
-                if frame_front is None and frame_tail is None:
-                    del self._executor_queue[0]
-
-            finish_time = time.time()
-            time.sleep(abs(self._time_step - (finish_time - start_time)))
+    def reset(self):
+        self._front_animation.reset()
+        self._tail_animation.reset()
 
 
-    def _queue_reader(self):
-        emergency_anim_executor = self._emergency_lock.get_executor()
-        if emergency_anim_executor is not None:
-            while not self._queue.empty():
-                self._queue.get()
-            self._executor_queue.clear()
-            self._executor_queue.append(emergency_anim_executor)
-            return
+    @property
+    def id(self):
+        return self._id
         
-        interrupt_anim_executor = self._interrupt_lock.get_executor()
-        if interrupt_anim_executor is not None:
-            if self._executor_queue[0].percent_done >= 0.75:
-                del self._executor_queue[0]
-            self._executor_queue.insert(0, interrupt_anim_executor)
-            return
 
-        try:
-            executor = self._queue.get(block=True, timeout=self._time_step/30)
-            self._executor_queue.append(executor)
-        except queue.Empty:
-            pass
-            
+    @property
+    def brightness(self):
+        return self._front_animation.brightness()
+
+
+    @property
+    def interrupting(self):
+        return self._interrupting
+
+
+    @property
+    def percent_done(self):
+        return min(self._front_animation.percent_done, self._tail_animation.percent_done)

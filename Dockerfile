@@ -1,15 +1,18 @@
-FROM ros:noetic-ros-core
+# FROM ros:noetic-ros-core
+FROM osrf/ros:noetic-desktop-full
 
 ENV  ROS_WS husarion_ws
 
 # Use bash instead of sh
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+SHELL ["/bin/bash", "-c"]
 
 # Update Ubuntu Software repository
-RUN apt-get update && \
-    apt-get install -y -qq apt-utils
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add - && \
+    rm -rf /etc/ros/rosdep/sources.list.d/20-default.list && \
+    apt update && \
+    apt install -y -qq apt-utils
 
-RUN apt-get install -y git \
+RUN apt install -y git \
     python3-dev \
     python3-pip \
     python3-rospkg \
@@ -25,7 +28,7 @@ RUN pip3 install \
 # Create and initialise ROS workspace
 RUN mkdir -p /$ROS_WS/src
 COPY ./panther_lights /$ROS_WS/src/panther_lights
-RUN chmod +x /$ROS_WS/src/panther_lights/scripts/lights_node
+RUN chmod +x /$ROS_WS/src/panther_lights/scripts/lights_node.py
 WORKDIR /$ROS_WS
 RUN mkdir build && \
     source /opt/ros/$ROS_DISTRO/setup.bash && \
