@@ -1,7 +1,5 @@
 global_brightness: 100
 num_led: 48
-led_switch_pin: 20
-led_power_pin: 26
 time_step: 0.01
 
 event_animations_files:

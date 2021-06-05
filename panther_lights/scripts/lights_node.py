@@ -38,7 +38,7 @@ class LightsNode:
                 import matplotlib.pyplot as plt
                 import warnings
             except ImportError as e:
-                raise ImportError(f'Unable to import matplotlib. Make sure you have installed matplotlib. {e}')
+                raise ImportError(f'unable to import matplotlib. Make sure you have installed matplotlib. {e}')
             self._driver = VirtualLEDController(num_led=self._num_led)
 
         else:
@@ -46,10 +46,8 @@ class LightsNode:
                 from apa102_pi.driver import apa102 
                 import RPi.GPIO as GPIO
             except ImportError:
-                raise ImportError('No hardware specific packages installed. Make sure you are running this node on Raspberry pi.')
+                raise ImportError('no hardware specific packages installed. Make sure you are running this node on Raspberry pi.')
             self._driver = HardwareAPA102Controller(num_led=self._num_led,
-                                                    led_switch_pin=self._led_config_importer.led_switch_pin,
-                                                    led_power_pin=self._led_config_importer.led_power_pin,
                                                     brightness=self._global_brightness)
 
 

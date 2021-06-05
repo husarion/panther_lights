@@ -6,12 +6,35 @@ import os
 from .animations import *
 
 class Executor:
+
     class ExecuterError(Exception):
         def __init__(self, message='YAML keyword error'):
             self.message = message
             super().__init__(self.message)
 
     def __init__(self, event_yaml, num_led, time_step, global_brightness):
+        '''
+        Params:
+            event_yaml:             Part of events yaml file describing given animation.
+            num_led:                Led count of panel. Read from led_conf.yaml
+            time_step:              Time duration between animation tics. Read from led_conf.yaml
+            global_brightness:      Globally set brightness of panels. Read from led_conf.yaml
+
+        anim_yaml keys:
+            id:                     Obligatory, int - positive.
+                                    Animation ID used by rosservice.
+
+            name:                   Obligatory, string
+                                    Animation name used by rosservice.
+
+            interrupting:           Optional, bool, default - false.
+                                    Allows animation to interrupt currently running animation.
+
+            both | [front, tail]:   Obligatory.
+                                    If specified 'both' the same animation will be applied to front and tail panel.
+                                    If font and tail specified different animations will be used for both panels.
+        '''
+
         self._id = event_yaml['id']
         self._name = event_yaml['name']
         if 'interrupting' in event_yaml.keys():
@@ -29,16 +52,15 @@ class Executor:
         else:
             raise Executor.ExecuterError(f'no {(set(["front", "tail", "both"])) - set(event_yaml["animation"].keys())} in {event_yaml}')
 
+
     def __call__(self, panel):
+        '''
+        Compute animation for each panel and return list of colors in hex values.
+        '''
         if panel == 0:
             return self._front_animation()
         if panel == 1:
             return self._tail_animation()
-
-
-    def _check_id(self, id):
-        if id in BASIC_ANIMATIONS.keys():
-            return 
 
 
     def reset(self):
