@@ -9,15 +9,15 @@ class Slide(Animation):
         self._start_point = 0
         self._end_point = num_led
 
-        self._color = [255,255,255]
+        self._color = 0xAAAAAA
 
         self._direction = np.sign(self._end_point - self._start_point)
-        self._frame[:,self._start_point] = np.array(self._color)
+        self._frame[self._start_point] = np.array(self._color)
         self._update_rate = np.floor(self._sequence_time / np.abs(self._start_point - self._end_point + 1))
 
 
     def _animation_callback(self):
-        if (self._frame_counter % self._update_rate) == 0:
+        if (self._tick % self._update_rate) == 0:
             self._frame = np.roll(self._frame, self._direction, axis=1)
 
         return self._frame.astype(np.uint8)
@@ -25,4 +25,4 @@ class Slide(Animation):
 
     def reset(self):
         super().reset()
-        self._frame[:,self._start_point] = np.array(self._color)
+        self._frame[self._start_point] = np.array(self._color)

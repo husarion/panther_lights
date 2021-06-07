@@ -5,6 +5,9 @@ import queue
 
 
 class AnimationLock:
+    '''
+    Simple lock used to pass animation with specific properties.
+    '''
     def __init__(self):
         self._lock = Lock()
         self._animation = None
@@ -31,7 +34,7 @@ class PantherLightsAnimationExecutorThread(Thread):
                  driver,
                  time_step=0.01):
 
-        '''Initialize PantherLights thread'''
+        # Initialize PantherLights thread
         super().__init__(name='panther_lights_thread')
 
         self._queue = queue
@@ -57,8 +60,11 @@ class PantherLightsAnimationExecutorThread(Thread):
             start_time = time.time()
             self._queue_reader()
 
+            # If queue not empty
             if self._executor_queue:
+                # Get first animation in queue
                 frame_front = self._executor_queue[0](0)
+                # If not finished display frame
                 if frame_front is not None:
                     self._driver.set_panel(0, frame_front)
 
@@ -66,34 +72,45 @@ class PantherLightsAnimationExecutorThread(Thread):
                 if frame_tail is not None:
                     self._driver.set_panel(1, frame_tail)
 
+                # If both front and tail animations finished destroy executor object
                 if frame_front is None and frame_tail is None:
                     del self._executor_queue[0]
 
+            # Ensure better timestep consistency
             finish_time = time.time()
             time.sleep(abs(self._time_step - (finish_time - start_time)))
 
 
     def _queue_reader(self):
+        # If emergency animation such as E-STOP
         emergency_anim_executor = self._emergency_lock.get_executor()
+        # If queue not empty
         if emergency_anim_executor is not None:
+            # Clear queue
             while not self._queue.empty():
                 self._queue.get()
             self._executor_queue.clear()
+            # Execute only emergency animation
             self._executor_queue.append(emergency_anim_executor)
             return
         
+        # If interrupting animation
         interrupt_anim_executor = self._interrupt_lock.get_executor()
+        # If queue not empty
         if interrupt_anim_executor is not None:
             if self._executor_queue:
+                # If current animation is at it's 75% remove it
                 if self._executor_queue[0].percent_done >= 0.75:
                     del self._executor_queue[0]
                 else:
                     self._executor_queue[0].reset()
+            # Insetr interrupting animation to begginging of queue
             self._executor_queue.insert(0, interrupt_anim_executor)
             return
 
+        # Check if new animation is available on regular queue and read it
         try:
-            executor = self._queue.get(block=True, timeout=self._time_step/30)
+            executor = self._queue.get(block=True, timeout=self._time_step/50)
             self._executor_queue.append(executor)
         except queue.Empty:
             pass

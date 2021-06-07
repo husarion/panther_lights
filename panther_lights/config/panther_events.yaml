@@ -3,21 +3,21 @@ event:
     name: 'E-STOP'
     animation:
       both:
-        animation_name: slide
+        image: blinker.png
+        color: 0xFFFF00
         duration: 3
 
   - id: 25
     name: 'TURN-LEFT'
     animation:
       front:
-        animation_name: slide
+        image: blinker.png
         duration: 2
-        wait_after_sequence: 0.5
         repeat: 2
-        keep_state: True
+        keep_last_frame: True
 
       tail:
-        animation_name: slide
+        image: blinker.png
         duration: 3
         keep_state: False
 
@@ -27,7 +27,7 @@ event:
     interrupting: True
     animation:
       both:
-        animation_name: slide
+        image: blinker.png
         duration: 2
 
 
@@ -35,8 +35,7 @@ event:
     name: 'SLIDE-FIVE'
     animation:
       both:
-        animation_name: slide
+        image: blinker.png
         duration: 1
-        wait_after_sequence: 0
         repeat: 2
-        keep_state: True
+        keep_last_frame: True

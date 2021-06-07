@@ -1,9 +1,9 @@
 from .animation import Animation
 
 from .slide import Slide
-from .double_slide import DoubleSlide
+from .image_animation import ImageAnimation
 
 BASIC_ANIMATIONS = {
         Slide.ANIMATION_NAME : Slide,
-        DoubleSlide.ANIMATION_NAME : DoubleSlide
+        ImageAnimation.ANIMATION_NAME : ImageAnimation
 }

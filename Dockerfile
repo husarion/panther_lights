@@ -23,7 +23,8 @@ RUN pip3 install \
         rosdep \
         rospkg \
         numpy \
-        matplotlib
+        matplotlib \
+        imageio
 
 # Create and initialise ROS workspace
 RUN mkdir -p /$ROS_WS/src

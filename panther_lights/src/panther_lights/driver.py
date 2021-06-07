@@ -58,7 +58,8 @@ class VirtualLEDController(ControllerInterface):
         panel_frame (Array): new frame to set. Dimensions: (3, led count in single panel)
         '''
         assert 0 <= panel_num < self._panel_count
-        assert np.shape(panel_frame)[1] == self._num_led and np.shape(panel_frame)[0] == 3
+        assert np.shape(panel_frame)[0] == self._num_led and np.shape(panel_frame)[1] == 3
+        panel_frame = panel_frame.T
 
         if self._panel_states[panel_num]:
             if brightness is None:
@@ -171,7 +172,7 @@ class HardwareAPA102Controller(ControllerInterface):
             if self._tail_active:
                 GPIO.output(self._led_switch_pin, not HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
         else:
-            raise HardwareAPA102Controller.ControllerError('Panther lights have only two panels')
+            raise HardwareAPA102Controller.ControllerError('panther lights have only two panels')
 
         # Set all leds in this panel
         for i in range(self._pixels.num_led):
