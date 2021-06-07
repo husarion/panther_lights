@@ -65,11 +65,15 @@ class VirtualLEDController(ControllerInterface):
             if brightness is None:
                 brightness = self._global_brightness
 
-            panel_frame = np.array(panel_frame) * (brightness / 255)
 
-            self._frame[panel_num,:,0] = panel_frame[0]
-            self._frame[panel_num,:,1] = panel_frame[1]
-            self._frame[panel_num,:,2] = panel_frame[2]
+            self._frame[panel_num,:,0] = [(np.uint32(led) >> 16) & (0x0000FF) for led in panel_frame[0]]
+            self._frame[panel_num,:,1] = [(np.uint32(led) >>  8) & (0x0000FF) for led in panel_frame[0]]
+            self._frame[panel_num,:,2] = [(np.uint32(led)      ) & (0x0000FF) for led in panel_frame[0]]
+
+            self._frame = np.array(self._frame) * (brightness / 255)
+
+            print(self._frame)
+
 
             self._queue.put(self._frame)
 

@@ -12,7 +12,9 @@ class Executor:
             self.message = message
             super().__init__(self.message)
 
+
     def __init__(self, event_yaml, num_led, time_step, global_brightness, *args):
+
         '''
         Params:
             event_yaml:             Part of events yaml file describing given animation.
