@@ -13,7 +13,7 @@ class Executor:
             super().__init__(self.message)
 
 
-    def __init__(self, event_yaml, num_led, time_step, global_brightness, *args):
+    def __init__(self, event_yaml, num_led, time_step, global_brightness):
 
         '''
         Params:
@@ -37,8 +37,6 @@ class Executor:
                                     If font and tail specified different animations will be used for both panels.
         '''
 
-        self._id = event_yaml['id']
-        self._name = event_yaml['name']
         if 'interrupting' in event_yaml.keys():
             self._interrupting = event_yaml['interrupting']
         else:
@@ -46,12 +44,12 @@ class Executor:
 
 
         if 'both' in event_yaml['animation'].keys():
-            self._front_animation = self._match_animation_type(event_yaml['animation']['both'], num_led, time_step, global_brightness, *args)
+            self._front_animation = self._match_animation_type(event_yaml['animation']['both'], num_led, time_step, global_brightness)
             self._tail_animation = copy.copy(self._front_animation)
 
         elif 'front' in event_yaml['animation'].keys() and 'tail' in event_yaml['animation'].keys():
-            self._front_animation = self._match_animation_type(event_yaml['animation']['front'], num_led, time_step, global_brightness, *args)
-            self._tail_animation = self._match_animation_type(event_yaml['animation']['tail'], num_led, time_step, global_brightness, *args)
+            self._front_animation = self._match_animation_type(event_yaml['animation']['front'], num_led, time_step, global_brightness)
+            self._tail_animation = self._match_animation_type(event_yaml['animation']['tail'], num_led, time_step, global_brightness)
         else:
             raise Executor.ExecuterError(f'no {(set(["front", "tail", "both"])) - set(event_yaml["animation"].keys())} in {event_yaml}')
 
@@ -78,11 +76,6 @@ class Executor:
     def reset(self):
         self._front_animation.reset()
         self._tail_animation.reset()
-
-
-    @property
-    def id(self):
-        return self._id
         
 
     @property

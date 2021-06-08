@@ -65,15 +65,11 @@ class VirtualLEDController(ControllerInterface):
             if brightness is None:
                 brightness = self._global_brightness
 
-
-            self._frame[panel_num,:,0] = [(np.uint32(led) >> 16) & (0x0000FF) for led in panel_frame[0]]
-            self._frame[panel_num,:,1] = [(np.uint32(led) >>  8) & (0x0000FF) for led in panel_frame[0]]
-            self._frame[panel_num,:,2] = [(np.uint32(led)      ) & (0x0000FF) for led in panel_frame[0]]
-
             self._frame = np.array(self._frame) * (brightness / 255)
 
-            print(self._frame)
-
+            self._frame[panel_num,:,0] = panel_frame[0]
+            self._frame[panel_num,:,1] = panel_frame[1]
+            self._frame[panel_num,:,2] = panel_frame[2]
 
             self._queue.put(self._frame)
 
@@ -201,27 +197,3 @@ class HardwareAPA102Controller(ControllerInterface):
         '''
         self._pixels.cleanup()
         GPIO.output(self._led_power_pin, not HardwareAPA102Controller.LED_POWER_ON_STATE) 
-
-
-
-
-
-if __name__ == '__main__':
-    '''
-    Simple GUI test
-    '''
-
-    vled = VirtualLEDController(num_led=6, panel_count=2)
-
-    frames = [[[0,0,0,0,0,255],[0,255,0,0,0,0],[0,0,0,0,0,0]],
-              [[0,0,0,0,255,0],[0,255,0,0,0,0],[0,0,0,0,0,0]],
-              [[0,0,0,255,0,0],[0,255,0,0,0,0],[0,0,0,0,0,0]],
-              [[0,0,255,0,0,0],[0,255,0,0,0,0],[0,0,0,0,0,0]],
-              [[0,255,0,0,0,0],[0,255,0,0,0,0],[0,0,0,0,0,0]],
-              [[255,0,0,0,0,0],[0,255,0,0,0,0],[0,0,0,0,0,0]]]
-
-    for frame in frames:
-        vled.set_panel(1, frame)
-        time.sleep(0.5)
-        vled.set_panel(0, frame)
-        time.sleep(0.5)

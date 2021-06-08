@@ -3,6 +3,7 @@
 import queue
 import time
 import yaml
+import copy
 import os
 
 import rospy
@@ -10,7 +11,8 @@ from std_srvs.srv import Empty
 from panther_lights.driver import VirtualLEDController, HardwareAPA102Controller
 from panther_lights.panther_thread import PantherLightsAnimationExecutorThread, AnimationLock
 from panther_lights.led_config_importer import LEDConfigImporter
-from panther_lights.srv import Brightness, LightsID, LightsName, Animation, PanelState
+from panther_lights.executor import Executor
+from panther_lights.srv import Brightness, Animation, ImageAnimation, PanelState
 
 
 class LightsNode:
@@ -66,8 +68,8 @@ class LightsNode:
 
         self._rate = rospy.Rate(10)
 
-        self._set_lights_by_name_service = rospy.Service('set_lights_by_name', LightsName, self._set_lights_by_name)
-        self._set_lights_by_id_service = rospy.Service('set_lights_by_id', LightsID, self._set_lights_by_id)
+        self._set_lights_by_name_service = rospy.Service('set_lights', Animation, self._set_lights)
+        self._set_image_animation = rospy.Service('set_imgae_animation', ImageAnimation, self._set_image_animation)
         self._disable_system_indicators_service = rospy.Service('disable_system_indicators', Empty, self._disable_system_indicators)
         self._enable_system_indicators_service = rospy.Service('enable_system_indicators', Empty, self._enable_system_indicators)
         self._set_brightness_service = rospy.Service('set_brightness', Brightness, self._set_brightness)
@@ -85,13 +87,16 @@ class LightsNode:
         del self._driver
         
 
-    def _set_lights_by_name(self, anim):
+    def _set_lights(self, anim):
         try:
-            animation = self._led_config_importer.get_animation(name=anim.name)
-        except LEDConfigImporter.LEDConfigImporterError as e:
-            return f'{e}'
+            if anim.id != 0 and not anim.name:
+                animation = self._led_config_importer.get_animation(id=anim.id)
+            elif anim.id == 0 and anim.name:
+                animation = self._led_config_importer.get_animation(name=anim.name)
+            else:
+                animation = self._led_config_importer.get_animation(id=anim.id, name=anim.name)
         except Exception as e:
-            return f'failed to set lights'
+            return f'failed'
 
         if animation.id in self._emergency_animation_id:
             self._emergency_lock.set_executor(animation)
@@ -103,22 +108,46 @@ class LightsNode:
         return f'success'
 
 
-    def _set_lights_by_id(self, anim):
+    def _set_image_animation(self, image):
+
+        if not image.image_front or not image.image_tail or image.duration == 0:
+            return 'failed'
+
+        animation = {
+            'repeat':     1,
+            'duration':   0,
+            'keep_state': False,
+            'image':      0
+        }
+        event = {
+            'front': copy.copy(animation),
+            'tail':  copy.copy(animation)
+        }
+
         try:
-            animation = self._led_config_importer.get_animation(id=anim.id)
-        except LEDConfigImporter.LEDConfigImporterError as e:
-            return f'{e}'
-        except Exception as e:
-            return f'failed to set lights'
+            if image.color:
+                event['front']['color'] = int(image.color, 16)
+                event['tail']['color'] = int(image.color, 16)
 
-        if animation.id in self._emergency_animation_id:
-            self._emergency_lock.set_executor(animation)
-        elif animation.interrupting:
+            if image.repeat != 0:
+                event['front']['repeat'] = image.repeat
+                event['tail']['repeat'] = image.repeat
+
+            if image.keep_state:
+                event['front']['keep_state'] = True
+                event['tail']['keep_state'] = True
+
+            event['front']['duration'] = image.duration
+            event['tail']['duration'] = image.duration
+
+            event['front']['image'] = image.image_front
+            event['tail']['image'] = image.image_tail
+
+            animation = Executor({'animation': event}, self._num_led, self._time_step, self._global_brightness)
             self._interrupt_lock.set_executor(animation)
-        else:
-            self._queue.put(animation)
-
-        return f'success'
+            return 'success'
+        except Exception as e:
+            return 'failed'
 
 
     def _disable_system_indicators(self):

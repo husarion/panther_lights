@@ -25,8 +25,7 @@ add_service_files(
   FILES
   Animation.srv
   Brightness.srv
-  LightsID.srv
-  LightsName.srv
+  ImageAnimation.srv
   PanelState.srv
  )
 

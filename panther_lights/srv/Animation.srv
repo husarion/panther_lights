@@ -1,3 +1,4 @@
-string yaml
+uint16 id
+string name
 ---
 string result

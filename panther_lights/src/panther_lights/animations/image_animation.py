@@ -12,7 +12,10 @@ class ImageAnimation(Animation):
             raise Animation.AnimationYAMLError('no image in parameters YAML')
 
         img_name = anim_yaml['image']
-        img_path = os.path.dirname(__file__) + f'/../../../animations/{img_name}'
+        if not os.path.isabs(img_name):
+            img_path = os.path.dirname(__file__) + f'/../../../animations/{img_name}'
+        else:
+            img_path = img_name
         self._img = np.array(imageio.imread(img_path))
 
         (img_y, img_x, _) = np.shape(self._img)

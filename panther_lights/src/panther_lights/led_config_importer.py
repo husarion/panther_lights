@@ -116,10 +116,28 @@ class LEDConfigImporter:
         if not set(self._husarion_animations).issubset(self._imported_animations.keys()):
             raise LEDConfigImporter.LEDConfigImporterError(f'no Panther specific animations: {set(self._husarion_animations) - set(self._imported_animations.keys())} in {self._imported_animations.keys()}')
 
-        
+
+    def get_animation(self, id=None, name=None):
+        key_file = self._get_animation_key(self._imported_animations, id=id, name=name)
+        key_added = self._get_animation_key(self._added_animations, id=id, name=name)
+
+        if key_file is not None:
+            return copy.deepcopy(self._imported_animations[key_file])
+        elif key_added is not None:
+            return copy.deepcopy(self._added_animations[key_added])
+        elif id is not None:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined.')
+        else:
+            raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined.')
+
 
     def _get_animation_key(self, animation_list, id=None, name=None):
         if animation_list:
+            if id is not None and name is not None:
+                if (id, name) in animation_list.keys():
+                    return (id, name)
+                else:
+                    return None
             if id is not None:
                 keys = list(animation_list.keys())
                 IDs = (np.array(keys)[:,0]).astype(np.int)
@@ -136,34 +154,6 @@ class LEDConfigImporter:
             if len(idx):
                 return keys[idx[0]]
         return None
-
-
-    def get_animation(self, id=None, name=None):
-        key_file = self._get_animation_key(self._imported_animations, id=id, name=name)
-        key_added = self._get_animation_key(self._added_animations, id=id, name=name)
-
-        if key_file is not None:
-            return copy.deepcopy(self._imported_animations[key_file])
-        elif key_added is not None:
-            return copy.deepcopy(self._added_animations[key_added])
-        elif id is not None:
-            raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined.')
-        else:
-            raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined.')
-
-
-    def get_animation_key(self, id=None, name=None):
-        key_file = self._get_animation_key(self._imported_animations, id=id, name=name)
-        key_added = self._get_animation_key(self._added_animations, id=id, name=name)
-
-        if key_file is not None:
-            return key_file
-        elif key_added is not None:
-            return key_added
-        elif id is not None:
-            raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined.')
-        else:
-            raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined.')
 
 
     @property
