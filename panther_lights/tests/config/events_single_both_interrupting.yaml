@@ -1,0 +1,8 @@
+event:
+  - id: 10
+    name: 'TEST'
+    interrupting: true
+    animation:
+      both:
+        image: blinker.png
+        duration: 1

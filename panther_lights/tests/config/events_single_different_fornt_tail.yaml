@@ -1,0 +1,15 @@
+event:
+  - id: 10
+    name: 'TEST'
+    animation:
+      front:
+        image: blinker_1.png
+        duration: 4
+        repeat: 3
+        keep_state: true
+
+      tail:
+        image: blinker_2.png
+        duration: 5
+        repeat: 4
+        keep_state: false

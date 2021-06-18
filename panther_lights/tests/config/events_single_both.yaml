@@ -1,6 +1,6 @@
 event:
   - id: 10
-    name: 'E-STOP'
+    name: 'TEST'
     animation:
       both:
         image: blinker.png

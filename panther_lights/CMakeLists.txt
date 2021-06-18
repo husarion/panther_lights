@@ -3,8 +3,6 @@ project(panther_lights)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(-std=c++14)
 
@@ -15,11 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_python_setup()
-
-# add_message_files(
-#   FILES
-#   LightsMessage.msg
-# )
 
 add_service_files(
   FILES
@@ -35,25 +28,12 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy message_runtime roscpp
+  CATKIN_DEPENDS rospy message_runtime
 )
 
-include_directories(
-  include ${catkin_INCLUDE_DIRS}
-)
-
-## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/panther_lights.cpp
-# )
-
-# add_executable(lights_controller_simple src/panther_lights/lights_controller_simple.cpp)
-# target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
-# add_dependencies(lights_controller_simple panther_lights_gencpp)
-
-# add_executable(lights_controller src/panther_lights/panther_lights.py)
-# target_link_libraries(lights_controller ${catkin_LIBRARIES})
-# add_dependencies(lights_controller panther_lights_gencpp)
+if (CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(tests/config_import_test.py)
+endif()
 
 
 #############

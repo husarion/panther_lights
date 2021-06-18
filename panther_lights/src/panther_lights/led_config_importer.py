@@ -56,7 +56,7 @@ class LEDConfigImporter:
             if os.path.isabs(file):
                 self._import_file(file)
             else:
-                src_path = os.path.dirname(__file__)
+                src_path = os.path.dirname(os.path.abspath(__file__))
                 conf_path = os.path.join(src_path, f'../../config/{file}')
                 self._import_file(conf_path)
     

@@ -1,0 +1,14 @@
+event:
+  - id: 1
+    name: 'TEST_1'
+    animation:
+      both:
+        image: blinker.png
+        duration: 1
+
+  - id: 2
+    name: 'TEST_2'
+    animation:
+      both:
+        image: blinker.png
+        duration: 1

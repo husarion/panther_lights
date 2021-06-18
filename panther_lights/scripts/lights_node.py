@@ -23,7 +23,7 @@ class LightsNode:
         if config_path is None:
             config_path = '../config/led_conf.yaml'
 
-        src_path = os.path.dirname(__file__)
+        src_path = os.path.dirname(os.path.abspath(__file__))
         conf_path = os.path.join(src_path, config_path)
 
         self._led_config_importer = LEDConfigImporter(conf_path)
