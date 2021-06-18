@@ -71,7 +71,7 @@ class Animation:
             raise Animation.AnimationYAMLError('duration has to pe positive.')
 
         if 'repeat' in anim_yaml.keys():
-            self._loops = anim_yaml['repeat']
+            self._loops = int(anim_yaml['repeat'])
             if self._loops <= 0:
                 raise Animation.AnimationYAMLError('repeat count can\'t be negative nor equal to zero.')
         else:
@@ -92,7 +92,6 @@ class Animation:
 
         self._frame = np.zeros((1,self._num_led))
 
-        self._is_waiting = False
         self._last_frame = False
 
 

@@ -70,8 +70,6 @@ class LightsNode:
 
         self._set_lights_by_name_service = rospy.Service('set_lights', Animation, self._set_lights)
         self._set_image_animation = rospy.Service('set_imgae_animation', ImageAnimation, self._set_image_animation)
-        self._disable_system_indicators_service = rospy.Service('disable_system_indicators', Empty, self._disable_system_indicators)
-        self._enable_system_indicators_service = rospy.Service('enable_system_indicators', Empty, self._enable_system_indicators)
         self._set_brightness_service = rospy.Service('set_brightness', Brightness, self._set_brightness)
         self._set_panel_state_service = rospy.Service('set_panel_state', PanelState, self._set_panel_state)
 
@@ -150,19 +148,10 @@ class LightsNode:
             return 'failed'
 
 
-    def _disable_system_indicators(self):
-        self._system_indicators = False
-        return 'system indicators: disabled'
-
-
-    def _enable_system_indicators(self):
-        self._system_indicators = True
-        return 'system indicators: enabled'
-
-
     def _set_brightness(self, value):
         self._driver.set_brightness(value.brightness)
         return f'brightness: {value.brightness}'
+
 
     def _set_panel_state(self, panels):
         self._driver.set_panel_state(0, panels.front)

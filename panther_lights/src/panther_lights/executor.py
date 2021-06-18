@@ -37,6 +37,8 @@ class Executor:
                                     If font and tail specified different animations will be used for both panels.
         '''
 
+        self._id = event_yaml['id']
+
         if 'interrupting' in event_yaml.keys():
             self._interrupting = event_yaml['interrupting']
         else:
@@ -91,3 +93,8 @@ class Executor:
     @property
     def percent_done(self):
         return min(self._front_animation.percent_done, self._tail_animation.percent_done)
+
+
+    @property
+    def id(self):
+        return self._id

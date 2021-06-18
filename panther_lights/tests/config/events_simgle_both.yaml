@@ -1,0 +1,7 @@
+event:
+  - id: 10
+    name: 'E-STOP'
+    animation:
+      both:
+        image: blinker.png
+        duration: 1
