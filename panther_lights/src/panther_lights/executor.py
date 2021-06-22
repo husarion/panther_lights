@@ -82,7 +82,7 @@ class Executor:
 
     @property
     def brightness(self):
-        return self._front_animation.brightness()
+        return (self._front_animation.brightness(), self._tail_animation.brightness())
 
 
     @property

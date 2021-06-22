@@ -1,4 +1,4 @@
-global_brightness: 100
+global_brightness: 1
 num_led: 48
 time_step: 0.01
 

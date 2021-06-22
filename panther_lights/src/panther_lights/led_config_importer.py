@@ -14,7 +14,7 @@ class LEDConfigImporter:
             super().__init__(self.message)
 
 
-    def __init__(self, yaml_path):
+    def __init__(self, yaml_file):
         '''
         Params:
             yaml_path:              Path to led_conf.yaml file containeing animation description.
@@ -33,35 +33,41 @@ class LEDConfigImporter:
                                     File names containing descriptions of animations.
         '''
 
-        # Obligatory animations used internally by Panther
-        self._husarion_animations = tuple([(10, 'E-STOP')])
-
-        self._yaml = yaml.load(open(yaml_path,'r'), Loader=yaml.Loader)
-
-        self._yaml_path = yaml_path
+        self._yaml = yaml_file
 
         # Check if obligatory keyword exist
         global_keywords = ['global_brightness', 'num_led', 'time_step', 'event_animations_files']
         if not set(global_keywords).issubset(self._yaml.keys()):
-            raise LEDConfigImporter.LEDConfigImporterError(f'No {set(global_keywords) - set(self._yaml.keys())} in {self._yaml_path}')
+            raise LEDConfigImporter.LEDConfigImporterError(f'No {set(global_keywords) - set(self._yaml.keys())}')
 
-        self._global_brightness = self._yaml['global_brightness']
+        self._global_brightness = float(self._yaml['global_brightness'])
+        if not (0 < self._global_brightness <= 1):
+            raise LEDConfigImporter.LEDConfigImporterError('brightness has match boundaries 0 < brightness <= 1.')
+        self._global_brightness = int(round(self._global_brightness * 255))
+
         self._num_led = self._yaml['num_led']
         self._time_step = self._yaml['time_step']
         self._imported_animations = {}
         self._added_animations = {}
 
+        self._id_map = {}
+        self._name_map = {}
 
-        for file in self._yaml['event_animations_files']:
-            if os.path.isabs(file):
-                self._import_file(file)
-            else:
+
+        for event_file_path in self._yaml['event_animations_files']:
+            if not os.path.isabs(event_file_path):
                 src_path = os.path.dirname(os.path.abspath(__file__))
-                conf_path = os.path.join(src_path, f'../../config/{file}')
-                self._import_file(conf_path)
+                event_file_path = os.path.join(src_path, f'../../config/{file}')
+
+            event_file = open(event_file_path,'r')
+            event_yaml = yaml.load(event_file, Loader=yaml.Loader)
+            event_file.close()
+
+            self._import_file(event_yaml)
+
     
 
-    def _import_file(self, file):
+    def _import_file(self, event_yaml):
         '''
         Params:
             file:                   YAML file with animations events' descriptions.
@@ -80,41 +86,39 @@ class LEDConfigImporter:
                                     File names containing descriptions of animations.
         '''
 
-        event_yaml = yaml.load(open(file,'r'), Loader=yaml.Loader)
-
         if 'event' not in event_yaml.keys():
             raise LEDConfigImporter.LEDConfigImporterError(f'No \'event\' in {file}.')
 
-        id_map = {}
-        name_map = {}
 
         # Create map of all names in file
+        id_map_offset = 0
+        if self._id_map:
+            id_map_offset = max(self._id_map.keys()) + 1
+
         for i in range(len(event_yaml['event'])):
             if 'id' not in event_yaml['event'][i].keys():
                 raise LEDConfigImporter.LEDConfigImporterError(f'No \'id\' in {event_yaml["event"][i]}.')
-            id_map[i] : event_yaml['event'][i]['id']
+            self._id_map[i+id_map_offset] = event_yaml['event'][i]['id']
 
             if 'name' not in event_yaml['event'][i].keys():
                 raise LEDConfigImporter.LEDConfigImporterError(f'No \'name\' in {event_yaml["event"][i]}.')
-            name_map[i] : event_yaml['event'][i]['name']
+            self._name_map[i+id_map_offset] = event_yaml['event'][i]['name']
 
         # Check if names and ID's are unique and do not overlap each other
-        if len(id_map.values()) != len(set(id_map.values())):
-            raise LEDConfigImporter.LEDConfigImporterError(f'events\' IDs in {file} aren\'t uniqueue.')
+        if len(self._id_map.values()) != len(set(self._id_map.values())):
+            raise LEDConfigImporter.LEDConfigImporterError(f'events\' IDs in {event_yaml} aren\'t uniqueue.')
 
-        if len(name_map.values()) != len(set(name_map.values())):
-            raise LEDConfigImporter.LEDConfigImporterError(f'events\' names in {file} aren\'t uniqueue.')
+        if len(self._name_map.values()) != len(set(self._name_map.values())):
+            raise LEDConfigImporter.LEDConfigImporterError(f'events\' names in {event_yaml} aren\'t uniqueue.')
 
-        if set(id_map.values()) & set(self._imported_animations.keys()):
-            raise LEDConfigImporter.LEDConfigImporterError(f'events\' IDs in {file} overlap previous ID declarations.')
+        if set(self._id_map.values()) & set(self._imported_animations.keys()):
+            raise LEDConfigImporter.LEDConfigImporterError(f'events\' IDs in {event_yaml} overlap previous ID declarations.')
 
         # Create instances of executors for each event
         for event in event_yaml['event']:
+            if event['id'] <= 0 or event['name'] == '':
+                raise LEDConfigImporter.LEDConfigImporterError(f'event id has to be non negative and name has can\'t be empty string.')
             self._imported_animations[(event['id'], event['name'])] = Executor(event, self._num_led, self._time_step, self._global_brightness)
-
-        # Check if imported executors contain all animations required by Panther
-        if not set(self._husarion_animations).issubset(self._imported_animations.keys()):
-            raise LEDConfigImporter.LEDConfigImporterError(f'no Panther specific animations: {set(self._husarion_animations) - set(self._imported_animations.keys())} in {self._imported_animations.keys()}')
 
 
     def get_animation(self, id=None, name=None):

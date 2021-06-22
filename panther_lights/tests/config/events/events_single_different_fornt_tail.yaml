@@ -7,9 +7,11 @@ event:
         duration: 4
         repeat: 3
         keep_state: true
+        brightness: 0.5
 
       tail:
         image: blinker_2.png
         duration: 5
         repeat: 4
         keep_state: false
+        brightness: 0.6

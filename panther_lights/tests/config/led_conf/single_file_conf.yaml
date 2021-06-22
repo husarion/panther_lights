@@ -1,0 +1,6 @@
+global_brightness: 1
+num_led: 48
+time_step: 0.01
+
+event_animations_files:
+  - /husarion_ws/src/panther_lights/tests/config/events/event_single_battery.yaml

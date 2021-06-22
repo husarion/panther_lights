@@ -7,3 +7,4 @@ event:
         duration: 2
         repeat: 3
         keep_state: true
+        brightness: 0.784313725

@@ -1,9 +1,9 @@
 from .animation import Animation
 
-from .slide import Slide
+from .battery_animation import BatteryAnimation
 from .image_animation import ImageAnimation
 
 BASIC_ANIMATIONS = {
-        Slide.ANIMATION_NAME : Slide,
+        BatteryAnimation.ANIMATION_NAME : BatteryAnimation,
         ImageAnimation.ANIMATION_NAME : ImageAnimation
 }

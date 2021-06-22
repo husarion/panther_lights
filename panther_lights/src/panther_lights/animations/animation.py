@@ -71,19 +71,26 @@ class Animation:
             raise Animation.AnimationYAMLError('duration has to pe positive.')
 
         if 'repeat' in anim_yaml.keys():
-            self._loops = int(anim_yaml['repeat'])
-            if self._loops <= 0:
-                raise Animation.AnimationYAMLError('repeat count can\'t be negative nor equal to zero.')
+            self._loops = anim_yaml['repeat']
+            if self._loops <= 0 or isinstance(self._loops, float):
+                raise Animation.AnimationYAMLError('repeat count can\'t be negative, equal to zero nor float.')
         else:
             self._loops = 1
 
         if 'keep_state' in anim_yaml.keys():
-            self._keep_state = bool(anim_yaml['keep_state'])
+            self._keep_state = anim_yaml['keep_state']
+            if not isinstance(self._keep_state, bool) and not isinstance(self._keep_state, int) or \
+                  (isinstance(self._keep_state, int) and self._keep_state not in (0,1)):
+                raise Animation.AnimationYAMLError('keep_state has to be logical.')
+            self._keep_state = bool(self._keep_state)
         else:
             self._keep_state = False
 
         if 'brightness' in anim_yaml:
-            self._brightness = anim_yaml['brightness']
+            self._brightness = float(anim_yaml['brightness'])
+            if not (0 < self._brightness <= 1):
+                raise Animation.AnimationYAMLError('brightness has match boundaries 0 < brightness <= 1.')
+            self._brightness = int(round(self._brightness * 255))
 
         self._tick = 0
         self._max_tics = self._duration / self._time_step
