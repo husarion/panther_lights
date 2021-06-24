@@ -1,5 +1,4 @@
-# FROM ros:noetic-ros-core
-FROM osrf/ros:noetic-desktop-full
+FROM ros:noetic-ros-core
 
 ENV  ROS_WS husarion_ws
 
@@ -7,23 +6,19 @@ ENV  ROS_WS husarion_ws
 SHELL ["/bin/bash", "-c"]
 
 # Update Ubuntu Software repository
-RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add - && \
-    rm -rf /etc/ros/rosdep/sources.list.d/20-default.list && \
-    apt update && \
-    apt install -y -qq apt-utils
+RUN apt update && \
+    apt install -y
 
 RUN apt install -y git \
     python3-dev \
     python3-pip \
-    python3-rospkg \
-    python3-tk
+    python3-rospkg
 
 # Python 3 dependencies
 RUN pip3 install \
         rosdep \
         rospkg \
         numpy \
-        matplotlib \
         imageio
 
 # Create and initialise ROS workspace
@@ -35,7 +30,6 @@ RUN mkdir build && \
     source /opt/ros/$ROS_DISTRO/setup.bash && \
     rosdep init && \
     rosdep update && \
-    rosdep install --from-paths src --ignore-src -r -y && \
     catkin_make install
 
 WORKDIR /
@@ -43,5 +37,3 @@ WORKDIR /
 # Clear 
 RUN apt clean && \
     rm -rf /var/lib/apt/lists/* 
-
-RUN echo "source \"/$ROS_WS/devel/setup.bash\"" >> ~/.bashrc

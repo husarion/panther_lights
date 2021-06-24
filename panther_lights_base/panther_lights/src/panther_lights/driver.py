@@ -109,11 +109,6 @@ class HardwareAPA102Controller(ControllerInterface):
     LED_POWER_ON_STATE     = False  # active LEDs with low state 
     GLOBAL_MAX_BRIGHTNESS  = 15 
 
-    # Assign numbers to panels
-    class Panel(Enum):
-        FRONT = 0
-        TAIL  = 1
-
     class ControllerError(Exception):
         '''
         Exception raised for errors in the HardwareAPA102Controller.
@@ -159,16 +154,16 @@ class HardwareAPA102Controller(ControllerInterface):
         panel_frame (Array): new frame to set. Dimensions: (3, led count in single panel)
         '''
         assert 0 <= panel_num < self._panel_count
-        assert np.shape(panel_frame)[1] == self._num_led and np.shape(panel_frame)[0] == 3
+        assert np.shape(panel_frame)[0] == self._num_led and np.shape(panel_frame)[1] == 3
 
         if brightness is None:
             brightness = self._global_brightness
 
         # Select panel
-        if panel_num == HardwareAPA102Controller.Panel.FRONT:
+        if panel_num == 0:
             if self._front_active:
                 GPIO.output(self._led_switch_pin, HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
-        elif panel_num == HardwareAPA102Controller.Panel.TAIL:
+        elif panel_num == 1:
             if self._tail_active:
                 GPIO.output(self._led_switch_pin, not HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
         else:
@@ -176,14 +171,18 @@ class HardwareAPA102Controller(ControllerInterface):
 
         # Set all leds in this panel
         for i in range(self._pixels.num_led):
-            self._pixels.set_pixel_rgb(i, panel_frame[i], brightness)
+            r = panel_frame[i][0]
+            g = panel_frame[i][1]
+            b = panel_frame[i][2]
+            color = (int(r) << 16) + (int(g) << 8) + int(b)
+            self._pixels.set_pixel_rgb(i, color, brightness)
         self._pixels.show()
 
 
     def set_panel_state(self, panel_num, state):
-        if panel_num == HardwareAPA102Controller.Panel.FRONT:
+        if panel_num == 0:
             self._front_active = state
-        elif panel_num == HardwareAPA102Controller.Panel.TAIL:
+        elif panel_num == 1:
             self._tail_active = state
 
     

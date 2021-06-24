@@ -1,0 +1,18 @@
+FROM panther_lights:base
+
+ENV PANTHER_LIGHTS_DRIVER PLT_GUI
+
+RUN apt install -y  python3-tk
+RUN pip3 install matplotlib
+
+WORKDIR /$ROS_WS
+RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
+    catkin_make
+
+# Clear 
+RUN apt clean && \
+    rm -rf /var/lib/apt/lists/* 
+    
+WORKDIR /
+
+RUN echo "source \"/$ROS_WS/devel/setup.bash\"" >> ~/.bashrc

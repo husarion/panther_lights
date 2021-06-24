@@ -39,12 +39,3 @@ event:
         duration: 1
         repeat: 2
         keep_last_frame: True
-
-  - id: 21372
-    name: 'SLIDE-FIVE'
-    animation:
-      both:
-        image: blinker.png
-        duration: 1
-        repeat: 2
-        keep_last_frame: True

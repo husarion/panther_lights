@@ -57,7 +57,7 @@ class LEDConfigImporter:
         for event_file_path in self._yaml['event_animations_files']:
             if not os.path.isabs(event_file_path):
                 src_path = os.path.dirname(os.path.abspath(__file__))
-                event_file_path = os.path.join(src_path, f'../../config/{file}')
+                event_file_path = os.path.join(src_path, f'../../config/{event_file_path}')
 
             event_file = open(event_file_path,'r')
             event_yaml = yaml.load(event_file, Loader=yaml.Loader)

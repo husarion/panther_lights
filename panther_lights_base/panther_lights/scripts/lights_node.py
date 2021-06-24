@@ -17,16 +17,18 @@ from panther_lights.srv import Brightness, Animation, ImageAnimation, PanelState
 
 class LightsNode:
     def __init__(self,
-                 config_path=None,
-                 use_virtual_driver=False):
+                 config_path=None):
 
         if config_path is None:
             config_path = '../config/led_conf.yaml'
 
         src_path = os.path.dirname(os.path.abspath(__file__))
         conf_path = os.path.join(src_path, config_path)
+        conf_file = open(conf_path,'r')
+        conf_yaml = yaml.load(conf_file, Loader=yaml.Loader)
+        conf_file.close()
 
-        self._led_config_importer = LEDConfigImporter(conf_path)
+        self._led_config_importer = LEDConfigImporter(conf_yaml)
 
         self._time_step = self._led_config_importer.time_step
         self._num_led = self._led_config_importer.num_led
@@ -34,7 +36,9 @@ class LightsNode:
 
         self._driver = None
 
-        if use_virtual_driver:
+
+        panther_driver_type = os.getenv('PANTHER_LIGHTS_DRIVER')
+        if panther_driver_type == 'PLT_GUI':
             try:
                 import matplotlib
                 import matplotlib.pyplot as plt
@@ -43,14 +47,17 @@ class LightsNode:
                 raise ImportError(f'unable to import matplotlib. Make sure you have installed matplotlib. {e}')
             self._driver = VirtualLEDController(num_led=self._num_led)
 
-        else:
+        elif panther_driver_type == 'APA102':
             try:
-                from apa102_pi.driver import apa102 
                 import RPi.GPIO as GPIO
+                from apa102_pi.driver import apa102 
             except ImportError:
                 raise ImportError('no hardware specific packages installed. Make sure you are running this node on Raspberry pi.')
             self._driver = HardwareAPA102Controller(num_led=self._num_led,
                                                     brightness=self._global_brightness)
+
+        else:
+            raise OSError(f'\'{panther_driver_type}\' - unknown driver type')
 
 
         self._queue = queue.Queue()
@@ -161,7 +168,7 @@ class LightsNode:
 
 if __name__ == '__main__':
     try:
-        lights = LightsNode(use_virtual_driver=True)
+        lights = LightsNode()
         lights.run()
     except Exception as e:
         rospy.logerr(f'panther_lights error: {e}')
