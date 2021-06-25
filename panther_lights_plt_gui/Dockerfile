@@ -2,8 +2,9 @@ FROM panther_lights:base
 
 ENV PANTHER_LIGHTS_DRIVER PLT_GUI
 
-RUN apt install -y  python3-tk
-RUN pip3 install matplotlib
+RUN apt update && \
+    apt install -y  python3-tk && \
+    pip3 install matplotlib
 
 WORKDIR /$ROS_WS
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \

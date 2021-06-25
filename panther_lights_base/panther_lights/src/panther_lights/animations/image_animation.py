@@ -40,16 +40,23 @@ class ImageAnimation(Animation):
             img_b = (self._img.astype(np.uint16) * b / 255).astype(np.uint8)
             self._img = np.dstack((img_r,img_g,img_b))
 
+        self._img = self._img.astype(np.uint16)
+        r = self._img[:,:,0] << 16
+        g = self._img[:,:,1] << 8
+        b = self._img[:,:,2]
+        self._img = r + g + b
+        
+
         self._frame_counter = 0
 
-        self._frame = self._img[self._frame_counter,:,:3]
+        self._frame = self._img[self._frame_counter,:]
         self._frame_tics = self._max_tics / self._img_y
         self._frame_counter_threshold = 0
 
 
     def _animation_callback(self):
         if self._tick >= self._frame_counter_threshold:
-            self._frame = self._img[self._frame_counter,:,:3]
+            self._frame = self._img[self._frame_counter,:]
             self._frame_counter_threshold += self._frame_tics
             self._frame_counter += 1
 
@@ -60,4 +67,4 @@ class ImageAnimation(Animation):
         super().reset()
         self._frame_counter = 0
         self._frame_counter_threshold = self._max_tics / self._img_y
-        self._frame = self._img[self._frame_counter,:,:3]
+        self._frame = self._img[self._frame_counter,:]

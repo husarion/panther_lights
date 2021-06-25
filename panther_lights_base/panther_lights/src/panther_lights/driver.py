@@ -44,6 +44,7 @@ class VirtualLEDController(ControllerInterface):
         self._global_brightness = brightness
         self._frame = np.zeros((panel_count, num_led, 3))
         self._panel_states = np.ones(panel_count).astype(np.bool)
+        self._mask = (np.ones(num_led) * 0x0000FF).astype(np.uint16)
 
         self._queue = Queue()
         self._is_running = True
@@ -58,18 +59,19 @@ class VirtualLEDController(ControllerInterface):
         panel_frame (Array): new frame to set. Dimensions: (3, led count in single panel)
         '''
         assert 0 <= panel_num < self._panel_count
-        assert np.shape(panel_frame)[0] == self._num_led and np.shape(panel_frame)[1] == 3
+        assert np.shape(panel_frame)[0] == self._num_led
         panel_frame = panel_frame.T
 
         if self._panel_states[panel_num]:
             if brightness is None:
                 brightness = self._global_brightness
 
-            self._frame = np.array(self._frame) * (brightness / 255)
 
-            self._frame[panel_num,:,0] = panel_frame[0]
-            self._frame[panel_num,:,1] = panel_frame[1]
-            self._frame[panel_num,:,2] = panel_frame[2]
+            self._frame[panel_num,:,0] = (np.uint32(panel_frame) >> 16) & (self._mask)
+            self._frame[panel_num,:,1] = (np.uint32(panel_frame) >>  8) & (self._mask)
+            self._frame[panel_num,:,2] = (np.uint32(panel_frame)      ) & (self._mask)
+
+            self._frame = np.array(self._frame) * (brightness / 255)
 
             self._queue.put(self._frame)
 
@@ -154,7 +156,7 @@ class HardwareAPA102Controller(ControllerInterface):
         panel_frame (Array): new frame to set. Dimensions: (3, led count in single panel)
         '''
         assert 0 <= panel_num < self._panel_count
-        assert np.shape(panel_frame)[0] == self._num_led and np.shape(panel_frame)[1] == 3
+        assert np.shape(panel_frame)[0] == self._num_led
 
         if brightness is None:
             brightness = self._global_brightness
@@ -171,10 +173,6 @@ class HardwareAPA102Controller(ControllerInterface):
 
         # Set all leds in this panel
         for i in range(self._pixels.num_led):
-            r = panel_frame[i][0]
-            g = panel_frame[i][1]
-            b = panel_frame[i][2]
-            color = (int(r) << 16) + (int(g) << 8) + int(b)
             self._pixels.set_pixel_rgb(i, color, brightness)
         self._pixels.show()
 

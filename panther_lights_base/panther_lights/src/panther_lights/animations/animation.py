@@ -121,7 +121,7 @@ class Animation:
             if self._keep_state:
                 return self._frame
             else:
-                return np.zeros((self._num_led,3))
+                return np.zeros((self._num_led))
         
         if self._last_frame:
             return None
