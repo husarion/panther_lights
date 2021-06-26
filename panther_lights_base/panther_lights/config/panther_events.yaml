@@ -27,7 +27,7 @@ event:
     interrupting: True
     animation:
       both:
-        image: blinker.png
+        animation_name: battery
         duration: 2
 
 

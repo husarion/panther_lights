@@ -103,9 +103,9 @@ class LightsNode:
         except Exception as e:
             return f'failed'
 
-        if animation.id in self._emergency_animation_id:
-            self._emergency_lock.set_executor(animation)
-        elif animation.interrupting:
+
+        animation.param = anim.param
+        if animation.interrupting:
             self._interrupt_lock.set_executor(animation)
         else:
             self._queue.put(animation)

@@ -60,6 +60,7 @@ class Animation:
         self._brightness = global_brightness
         self._time_step = time_step
         self._num_led = num_led
+        self._param = None
 
         # Check for obligatory keys
         animation_keywords = ['duration']
@@ -148,6 +149,10 @@ class Animation:
         '''
         self._tick = 0
         self._last_frame = False
+
+    def param(self, val):
+        raise NotImplementedError
+    param = property(None, param)
 
 
     @property
