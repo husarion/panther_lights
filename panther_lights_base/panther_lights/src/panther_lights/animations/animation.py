@@ -87,6 +87,7 @@ class Animation:
         else:
             self._keep_state = False
 
+
         if 'brightness' in anim_yaml:
             self._brightness = float(anim_yaml['brightness'])
             if not (0 < self._brightness <= 1):
@@ -122,7 +123,7 @@ class Animation:
             if self._keep_state:
                 return self._frame
             else:
-                return np.zeros((self._num_led))
+                return np.zeros((self._num_led)).astype(np.uint32)
         
         if self._last_frame:
             return None

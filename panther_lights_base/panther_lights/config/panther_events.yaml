@@ -3,9 +3,10 @@ event:
     name: 'E-STOP'
     animation:
       both:
-        image: blinker.png
-        color: 0xFFFF00
-        duration: 3
+        image: test_pattern.png
+        # color: 0xFFFF00
+        duration: 0.1
+        keep_state: True
 
   - id: 25
     name: 'TURN-LEFT'
@@ -14,7 +15,7 @@ event:
         image: blinker.png
         duration: 2
         repeat: 2
-        keep_last_frame: True
+        keep_state: True
 
       tail:
         image: blinker.png
@@ -38,4 +39,4 @@ event:
         image: blinker.png
         duration: 1
         repeat: 2
-        keep_last_frame: True
+        keep_state: True

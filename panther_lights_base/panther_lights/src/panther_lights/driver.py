@@ -108,6 +108,7 @@ class HardwareAPA102Controller(ControllerInterface):
     '''
 
     LED_SWITCH_FRONT_STATE = True   # High - front panel | Low - tail panel
+    LED_SWITCH_TAIL_STATE = False
     LED_POWER_ON_STATE     = False  # active LEDs with low state 
     GLOBAL_MAX_BRIGHTNESS  = 15 
 
@@ -131,11 +132,12 @@ class HardwareAPA102Controller(ControllerInterface):
                  led_switch_pin: Optional[int] = 20,
                  led_power_pin: Optional[int] = 26):
 
+        # self._num_led = num_led
         self._num_led = num_led
         self._panel_count = panel_count
         self._global_brightness = brightness
 
-        self._pixels = apa102.APA102(num_led=num_led, order="rgb", mosi=10, sclk=11, global_brightness=brightness)
+        self._pixels = apa102.APA102(num_led=self._num_led, order="rgb", mosi=10, sclk=11, global_brightness=brightness)
         self._led_switch_pin = led_switch_pin
         self._led_power_pin = led_power_pin
 
@@ -153,7 +155,7 @@ class HardwareAPA102Controller(ControllerInterface):
     def set_panel(self, panel_num, panel_frame, brightness=None):
         '''
         panel_num (HardwareAPA102Controller.Panel): panel identifier.
-        panel_frame (Array): new frame to set. Dimensions: (3, led count in single panel)
+        panel_frame (Array): new frame to set. Dimensions: (led count in single panel)
         '''
         assert 0 <= panel_num < self._panel_count
         assert np.shape(panel_frame)[0] == self._num_led
@@ -162,18 +164,17 @@ class HardwareAPA102Controller(ControllerInterface):
             brightness = self._global_brightness
 
         # Select panel
-        if panel_num == 0:
-            if self._front_active:
-                GPIO.output(self._led_switch_pin, HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
-        elif panel_num == 1:
-            if self._tail_active:
-                GPIO.output(self._led_switch_pin, not HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
+        if panel_num == 0 and self._front_active:
+            GPIO.output(self._led_switch_pin, HardwareAPA102Controller.LED_SWITCH_FRONT_STATE)
+        elif panel_num == 1 and self._tail_active:
+            GPIO.output(self._led_switch_pin, HardwareAPA102Controller.LED_SWITCH_TAIL_STATE)
         else:
             raise HardwareAPA102Controller.ControllerError('panther lights have only two panels')
 
+
         # Set all leds in this panel
-        for i in range(self._pixels.num_led):
-            self._pixels.set_pixel_rgb(i, color, brightness)
+        for i in range(self._num_led):
+            self._pixels.set_pixel_rgb(i, panel_frame[i], brightness)
         self._pixels.show()
 
 

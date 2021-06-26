@@ -35,16 +35,17 @@ class ImageAnimation(Animation):
                         0.5870 * self._img[:,:,1] + \
                         0.1140 * self._img[:,:,2]
             self._img = self._img / np.max(self._img) * 255
-            img_r = (self._img.astype(np.uint16) * r / 255).astype(np.uint8)
-            img_g = (self._img.astype(np.uint16) * g / 255).astype(np.uint8)
-            img_b = (self._img.astype(np.uint16) * b / 255).astype(np.uint8)
+            img_r = (self._img.astype(np.uint32) * r / 255).astype(np.uint8)
+            img_g = (self._img.astype(np.uint32) * g / 255).astype(np.uint8)
+            img_b = (self._img.astype(np.uint32) * b / 255).astype(np.uint8)
             self._img = np.dstack((img_r,img_g,img_b))
 
-        self._img = self._img.astype(np.uint16)
+        self._img = self._img.astype(np.uint32)
         r = self._img[:,:,0] << 16
         g = self._img[:,:,1] << 8
         b = self._img[:,:,2]
         self._img = r + g + b
+        self._img.astype(np.uint8)
         
 
         self._frame_counter = 0
