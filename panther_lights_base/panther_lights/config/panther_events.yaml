@@ -1,44 +1,79 @@
 event:
-  - id: 10
+  - id: 1
     name: 'E-STOP'
+    interrupting: true
     animation:
       both:
         image: blinker.png
-        color: 0xFFFF00
-        duration: 1
-        repeat: 5
-        keep_state: False
+        duration: 3
+        keep_state: true
 
-  - id: 25
-    name: 'TURN-LEFT'
+  - id: 2
+    name: 'ERROR'
     interrupting: true
     animation:
-      front:
+      both:
         image: blinker.png
-        duration: 10
-        repeat: 1
-        keep_state: False
+        duration: 3
+        repeat: 2
 
-      tail:
+  - id: 3
+    name: 'GOAL_ARCHIVED'
+    interrupting: True
+    animation:
+      both:
         image: blinker.png
-        duration: 5
-        keep_state: False
+        duration: 3
+        repeat: 3
 
 
-  - id: 21
-    name: 'TURN-LEFAT'
+  - id: 4
+    name: 'CRITICAL_BATTERY'
+    interrupting: True
+    animation:
+      both:
+        image: blinker.png
+        duration: 2
+        repeat: 2
+
+  - id: 5
+    name: 'LOW_BATTERY'
+    animation:
+      both:
+        image: blinker.png
+        duration: 2
+        repeat: 2
+
+  - id: 6
+    name: 'SHOW_BATTERY'
     interrupting: True
     animation:
       both:
         animation_name: battery
-        duration: 2
+        duration: 1.5
+        repeat: 5
 
+  - id: 7
+    name: 'AUTONOMUS_ACTION'
+    animation:
+      both:
+        image: blinker.png
+        duration: 3
+        keep_state: True
 
-  - id: 22
-    name: 'SLIDE-FIVE'
+  - id: 8
+    name: 'WEB_ACTION'
+    animation:
+      both:
+        image: blinker.png
+        duration: 3
+        keep_state: True
+
+  - id: 9
+    name: 'READY'
     animation:
       both:
         image: blinker.png
         duration: 1
-        repeat: 2
         keep_state: True
+

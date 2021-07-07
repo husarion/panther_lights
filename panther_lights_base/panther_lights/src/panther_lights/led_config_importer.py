@@ -1,7 +1,6 @@
 import os
 import yaml
 import copy
-import numpy as np
 from typing import Optional
 
 from .animations import *
@@ -115,21 +114,27 @@ class LEDConfigImporter:
                     return (id, name)
                 else:
                     return None
+            idx = None
+            keys = list(animation_list.keys())
             if id is not None:
-                keys = list(animation_list.keys())
-                IDs = (np.array(keys)[:,0]).astype(np.int)
-                idx = np.where(IDs == id)[0]
+                IDs = [key[0] for key in keys]
+                for i in range(len(IDs)):
+                    if IDs[i] == id:
+                        idx = i
+                        break
 
             elif name is not None:
-                keys = list(animation_list.keys())
-                names = (np.array(keys)[:,1])
-                idx = np.where(names == name)[0]
+                names = [key[1] for key in keys]
+                for i in range(len(names)):
+                    if names[i] == name:
+                        idx = i
+                        break
             
             else:
                 raise LEDConfigImporter.LEDConfigImporterError(f'ID and name can\'t be none at the same time')
 
-            if len(idx):
-                return keys[idx[0]]
+            if not idx is None:
+                return keys[idx]
         return None
 
 

@@ -1,8 +1,6 @@
-import numpy as np
-import copy
-import yaml
 import os
-
+import yaml
+import copy
 from threading import Thread
 
 from .animations import AnimationRuntime, BASIC_ANIMATIONS
@@ -94,6 +92,12 @@ class Event:
         if self._tail_animation_runtime:
             self._tail_animation_runtime.kill()
             self._tail_animation_runtime.join()
+
+    def param(self, val):
+        '''sets animations param'''
+        self._front_animation.param = val
+        self._tail_animation.param = val
+    param = property(None, param)
         
 
     @property

@@ -77,3 +77,8 @@ class ImageAnimation(Animation):
     def reset(self):
         '''restets animation to it's initial state'''
         self._i = 0
+
+    def param(self, val):
+        '''sets animations param'''
+        pass
+    param = property(None, param)
