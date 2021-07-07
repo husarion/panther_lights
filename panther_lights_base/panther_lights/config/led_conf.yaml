@@ -1,6 +1,5 @@
 global_brightness: 1
 num_led: 46
-time_step: 0.01
 
 event_animations_files:
   - panther_events.yaml

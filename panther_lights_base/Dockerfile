@@ -1,6 +1,7 @@
 FROM ros:noetic-ros-core
 
 ENV  ROS_WS husarion_ws
+ENV PANTHER_LIGHTS_CONTROLLER NONE
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]

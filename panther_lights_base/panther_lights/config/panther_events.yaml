@@ -3,23 +3,25 @@ event:
     name: 'E-STOP'
     animation:
       both:
-        image: test_pattern.png
-        # color: 0xFFFF00
-        duration: 0.1
-        keep_state: True
+        image: blinker.png
+        color: 0xFFFF00
+        duration: 1
+        repeat: 5
+        keep_state: False
 
   - id: 25
     name: 'TURN-LEFT'
+    interrupting: true
     animation:
       front:
         image: blinker.png
-        duration: 2
-        repeat: 2
-        keep_state: True
+        duration: 10
+        repeat: 1
+        keep_state: False
 
       tail:
         image: blinker.png
-        duration: 3
+        duration: 5
         keep_state: False
 
 
@@ -32,7 +34,7 @@ event:
         duration: 2
 
 
-  - id: 2137
+  - id: 22
     name: 'SLIDE-FIVE'
     animation:
       both:

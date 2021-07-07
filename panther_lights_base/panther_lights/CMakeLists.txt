@@ -7,6 +7,7 @@ find_package(Threads REQUIRED)
 add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
+  roscpp
   rospy
   std_msgs
   message_generation
@@ -16,11 +17,16 @@ catkin_python_setup()
 
 add_service_files(
   FILES
-  Animation.srv
   Brightness.srv
-  ImageAnimation.srv
   PanelState.srv
  )
+
+add_message_files(
+  FILES
+  Animation.msg
+  ImageAnimation.msg
+)
+
 
 generate_messages(
   DEPENDENCIES

@@ -1,6 +1,6 @@
 FROM panther_lights:base
 
-ENV PANTHER_LIGHTS_DRIVER PLT_GUI
+ENV PANTHER_LIGHTS_CONTROLLER PLT_GUI
 
 RUN apt update && \
     apt install -y  python3-tk && \

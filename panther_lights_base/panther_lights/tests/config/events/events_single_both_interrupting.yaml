@@ -4,5 +4,5 @@ event:
     interrupting: true
     animation:
       both:
-        image: blinker.png
+        image: /husarion_ws/src/panther_lights/tests/animations/blinker.png
         duration: 1

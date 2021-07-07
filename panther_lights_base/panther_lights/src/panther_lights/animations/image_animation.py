@@ -1,12 +1,16 @@
-from .animation import Animation
 import numpy as np
 import imageio
+import time
 import os
 
+from .animation import Animation
+
 class ImageAnimation(Animation):
+
     ANIMATION_NAME = 'image_animation'
-    def __init__(self, anim_yaml, num_led, time_step, global_brightness):
-        super().__init__(anim_yaml, num_led, time_step, global_brightness)
+    def __init__(self, anim_yaml, num_led, global_brightness, panel):
+        '''image animation class'''
+        super().__init__(anim_yaml, num_led, global_brightness, panel)
 
         if not 'image' in anim_yaml.keys():
             raise Animation.AnimationYAMLError('no image in parameters YAML')
@@ -23,23 +27,27 @@ class ImageAnimation(Animation):
         if img_x != num_led:
             raise Animation.AnimationYAMLError('supplied image is not equal width to led number')
 
+        # overwrite animation's color
         if 'color' in anim_yaml.keys():
             color = anim_yaml['color']
-
+            # change from hex to RGB
             r = (np.uint32(color) >> 16) & (0x0000FF)
             g = (np.uint32(color) >>  8) & (0x0000FF)
             b = (np.uint32(color)      ) & (0x0000FF)
             
-            # Turn image to grayscale and normalise colours
-            self._img = 0.2989 * self._img[:,:,0] + \
-                        0.5870 * self._img[:,:,1] + \
-                        0.1140 * self._img[:,:,2]
+            # turn image to grayscale
+            self._img = 0.2989 * self._img[:,:,0] \
+                      + 0.5870 * self._img[:,:,1] \
+                      + 0.1140 * self._img[:,:,2]
+            # normalise brightness
             self._img = self._img / np.max(self._img) * 255
             img_r = (self._img.astype(np.uint32) * r / 255).astype(np.uint8)
             img_g = (self._img.astype(np.uint32) * g / 255).astype(np.uint8)
             img_b = (self._img.astype(np.uint32) * b / 255).astype(np.uint8)
+            # reconstruct image
             self._img = np.dstack((img_r,img_g,img_b))
 
+        # conver image from RGB to HEX
         self._img = self._img.astype(np.uint32)
         r = self._img[:,:,0] << 16
         g = self._img[:,:,1] << 8
@@ -47,25 +55,25 @@ class ImageAnimation(Animation):
         self._img = r + g + b
         self._img.astype(np.uint8)
         
+        self._i = 0
+        self._frame_time = self._duration / self._img_y
+        
 
-        self._frame_counter = 0
+    def __call__(self):
+        '''returns new frame'''
+        if self._i < self._img_y:
+            frame = self._img[self._i,:]
+            self._i += 1
+            return frame
+        raise Animation.AnimationFinished
 
-        self._frame = self._img[self._frame_counter,:]
-        self._frame_tics = self._max_tics / self._img_y
-        self._frame_counter_threshold = 0
 
-
-    def _animation_callback(self):
-        if self._tick >= self._frame_counter_threshold:
-            self._frame = self._img[self._frame_counter,:]
-            self._frame_counter_threshold += self._frame_tics
-            self._frame_counter += 1
-
-        return self._frame
+    @property
+    def sleep_time(self):
+        '''returns time needed to sleep in thread between frames'''
+        return self._frame_time
 
 
     def reset(self):
-        super().reset()
-        self._frame_counter = 0
-        self._frame_counter_threshold = self._max_tics / self._img_y
-        self._frame = self._img[self._frame_counter,:]
+        '''restets animation to it's initial state'''
+        self._i = 0

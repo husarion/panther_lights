@@ -3,7 +3,7 @@ event:
     name: 'TEST'
     animation:
       both:
-        image: blinker.png
+        image: /husarion_ws/src/panther_lights/tests/animations/blinker.png
         duration: 2
         repeat: 3
         keep_state: true
