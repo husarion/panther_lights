@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  panther_lights:
+    build: .
+    container_name: panther_lights_controller
+    privileged: true
+    volumes:
+      - /dev/gpiomem:/dev/gpiomem
+      - /sys:/sys
+      - type: bind
+        source: ./../panther_lights_controller_base/panther_lights
+        target: /husarion_ws/src/panther_lights
+    command: roscore

@@ -1,7 +1,0 @@
-Header header
-string image_front
-string image_tail
-float32 duration
-string color
-uint8 repeat
-bool keep_state

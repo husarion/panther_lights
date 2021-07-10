@@ -1,0 +1,11 @@
+event:
+  - id: 10
+    name: 'TEST'
+    animation:
+      front:
+        image: /husarion_ws/src/panther_lights/tests/animations/blinker.png
+        duration: 1
+
+      tail:
+        animation_name: battery
+        duration: 1

@@ -1,0 +1,8 @@
+event:
+  - id: 2
+    name: 'TEST_2'
+    interrupting: true
+    animation:
+      both:
+        animation_name: battery
+        duration: 1

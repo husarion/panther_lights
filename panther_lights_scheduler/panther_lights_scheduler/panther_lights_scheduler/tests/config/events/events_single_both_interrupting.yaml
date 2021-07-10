@@ -1,0 +1,8 @@
+event:
+  - id: 10
+    name: 'TEST'
+    interrupting: true
+    animation:
+      both:
+        image: /husarion_ws/src/panther_lights/tests/animations/blinker.png
+        duration: 1

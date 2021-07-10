@@ -1,0 +1,19 @@
+version: '3.4'
+
+services:
+  panther_lights:
+    build: .
+    container_name: panther_lights_controller
+    environment:
+      - "DISPLAY"
+      - "QT_X11_NO_MITSHM=1"
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /etc/group:/etc/group:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+      - /etc/sudoers.d:/etc/sudoers.d:ro
+      - type: bind
+        source: ./../panther_lights_controller_base/panther_lights
+        target: /husarion_ws/src/panther_lights
+    command: roscore
