@@ -14,6 +14,6 @@ services:
       - /etc/shadow:/etc/shadow:ro
       - /etc/sudoers.d:/etc/sudoers.d:ro
       - type: bind
-        source: ./../panther_lights_controller_base/panther_lights
-        target: /husarion_ws/src/panther_lights
+        source: ./../../panther_lights_controller_base/panther_lights_controller
+        target: /husarion_ws/src/panther_lights_controller
     command: roscore

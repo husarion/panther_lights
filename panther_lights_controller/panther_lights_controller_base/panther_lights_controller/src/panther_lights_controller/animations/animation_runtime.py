@@ -1,7 +1,5 @@
 from threading import Thread, Lock, Event
-from queue import Queue
 import time
-import copy
 
 from .animation import Animation
 

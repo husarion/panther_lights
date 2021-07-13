@@ -49,7 +49,7 @@ event:
     animation:
       both:
         animation_name: battery
-        duration: 5
+        duration: 1
         repeat: 5
 
   - id: 7

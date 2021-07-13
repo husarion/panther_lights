@@ -5,12 +5,12 @@ import yaml
 import copy
 
 import rospy
-from std_srvs.srv import SetBool, SetBoolResponse
+from std_srvs.srv import SetBool
 
-from panther_lights.event import Event
-from panther_lights.controller import Controller
-from panther_lights.led_config_importer import LEDConfigImporter
-from panther_lights.srv import LEDBrightness, LEDPanel, LEDAnimation, LEDImageAnimation
+from panther_lights_controller.event import Event
+from panther_lights_controller.controller import Controller
+from panther_lights_controller.led_config_importer import LEDConfigImporter
+from panther_lights_controller.srv import LEDBrightness, LEDPanel, LEDAnimation, LEDImageAnimation
 
 class LightsControllerNode:
     

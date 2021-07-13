@@ -1,7 +1,4 @@
-import os
-import yaml
 import copy
-from threading import Thread
 
 from .animations import AnimationRuntime, BASIC_ANIMATIONS
 

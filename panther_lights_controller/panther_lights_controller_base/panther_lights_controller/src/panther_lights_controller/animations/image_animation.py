@@ -1,6 +1,5 @@
 import numpy as np
 import imageio
-import time
 import os
 
 from .animation import Animation

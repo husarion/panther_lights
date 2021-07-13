@@ -1,4 +1,4 @@
-FROM panther_lights:base
+FROM panther_lights_controller:base
 
 ENV PANTHER_LIGHTS_CONTROLLER PLT_GUI
 

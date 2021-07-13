@@ -1,7 +1,3 @@
-from threading import Lock
-from queue import Queue
-import time
-import yaml
 
 class Animation:
 
