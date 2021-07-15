@@ -1,6 +1,6 @@
 FROM ros:noetic-ros-core
 
-ENV  ROS_WS husarion_ws
+ENV  ROS_WS ros_ws
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -17,12 +17,13 @@ RUN apt install -y git \
 # Python 3 dependencies
 RUN pip3 install \
         rosdep \
-        rospkg \
+        rospkg
 
 # Create and initialise ROS workspace
 RUN mkdir -p /$ROS_WS/src
-COPY ./panther_lights /$ROS_WS/src/panther_lights_scheduler
-RUN chmod +x /$ROS_WS/src/panther_lights/src/lights_node.py
+COPY ./husarion_msgs /$ROS_WS/src/husarion_msgs
+COPY ./panther_lights_scheduler /$ROS_WS/src/panther_lights_scheduler/
+RUN chmod +x /$ROS_WS/src/panther_lights_scheduler/src/panther_lights_scheduler/lights_scheduler_node.py
 WORKDIR /$ROS_WS
 RUN mkdir build && \
     source /opt/ros/$ROS_DISTRO/setup.bash && \
@@ -35,3 +36,5 @@ WORKDIR /
 # Clear 
 RUN apt clean && \
     rm -rf /var/lib/apt/lists/* 
+
+COPY ./ros_entrypoint.sh /

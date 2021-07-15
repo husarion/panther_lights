@@ -1,6 +1,6 @@
 FROM ros:noetic-ros-core
 
-ENV ROS_WS husarion_ws
+ENV ROS_WS ros_ws
 ENV PANTHER_LIGHTS_CONTROLLER NONE
 
 # Use bash instead of sh
@@ -24,6 +24,7 @@ RUN pip3 install \
 
 # Create and initialise ROS workspace
 RUN mkdir -p /$ROS_WS/src
+COPY ./husarion_msgs /$ROS_WS/src/husarion_msgs
 COPY ./panther_lights_controller /$ROS_WS/src/panther_lights_controller
 RUN chmod +x /$ROS_WS/src/panther_lights_controller/src/panther_lights_controller/controller_node.py
 WORKDIR /$ROS_WS
@@ -38,3 +39,5 @@ WORKDIR /
 # Clear 
 RUN apt clean && \
     rm -rf /var/lib/apt/lists/* 
+
+COPY ./ros_entrypoint.sh /

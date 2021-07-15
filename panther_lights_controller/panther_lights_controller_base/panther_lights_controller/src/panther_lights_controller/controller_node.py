@@ -10,7 +10,8 @@ from std_srvs.srv import SetBool
 from panther_lights_controller.event import Event
 from panther_lights_controller.controller import Controller
 from panther_lights_controller.led_config_importer import LEDConfigImporter
-from panther_lights_controller.srv import LEDBrightness, LEDPanel, LEDAnimation, LEDImageAnimation
+from husarion_msgs.msg import LEDAnimation, LEDAnimationArr
+from husarion_msgs.srv import LEDBrightness, LEDPanel, LEDSetId, LEDSetImageAnimation
 
 class LightsControllerNode:
     
@@ -38,8 +39,9 @@ class LightsControllerNode:
         self._current_animation = None
 
         rospy.init_node('lights_controller_node')
-        self._set_lights_service = rospy.Service('set/id', LEDAnimation, self._set_lights_callback)
-        self._set_image_animation_service = rospy.Service('set/image', LEDImageAnimation, self._set_image_animation_callback)
+        self._animation_queue_pub = rospy.Publisher('queue', LEDAnimationArr, queue_size=10)
+        self._set_lights_service = rospy.Service('set/id', LEDSetId, self._set_lights_callback)
+        self._set_image_animation_service = rospy.Service('set/image', LEDSetImageAnimation, self._set_image_animation_callback)
         self._set_brightness_service = rospy.Service('brightness', LEDBrightness, self._brightness_callback)
         self._set_panel_state_service = rospy.Service('panel_state', LEDPanel, self._panel_state_callback)
         self._set_panel_state_service = rospy.Service('clear_panel', LEDPanel, self._clear_panel_callback)
@@ -47,7 +49,7 @@ class LightsControllerNode:
         self._set_panel_state_service = rospy.Service('kill_current_anim', SetBool, self._kill_current_anim_callback)
         self._lights_controller_timer = rospy.Timer(rospy.Duration(0.05), self._lights_controller)
 
-        rospy.loginfo('panther_lights started')
+        rospy.loginfo(f'{rospy.get_name()} started')
 
 
     def _lights_controller(self, *args):
@@ -56,6 +58,7 @@ class LightsControllerNode:
             if self._current_animation.finished:
                 del self._current_animation
                 self._current_animation = None
+                self._publish_queue_state()
 
             # animation interrupts and saves previous
             if self._anim_queue and self._interrupt:
@@ -71,6 +74,7 @@ class LightsControllerNode:
                 self._current_animation = self._anim_queue.pop(0)
                 if not self._current_animation.spawned:
                     self._current_animation.spawn(self._controller)
+                self._publish_queue_state()
                 self._current_animation.run()
         else:
             # await new animations
@@ -81,18 +85,38 @@ class LightsControllerNode:
             self._current_animation = self._anim_queue.pop(0)
             if not self._current_animation.spawned:
                 self._current_animation.spawn(self._controller)
+            self._publish_queue_state()
             self._current_animation.run()
+
+    
+    def _publish_queue_state(self):
+        '''returns animations execution order'''
+        animations_list = LEDAnimationArr()
+        animations_list.header.stamp = rospy.Time.now()
+
+        if self._current_animation:
+            key = self._led_config_importer.event_key(id=self._current_animation.id)
+            animations_list.queue.append(LEDAnimation(key[0], key[1]))
+
+        for anim in self._anim_queue:
+            key = self._led_config_importer.event_key(id=anim.id)
+            animations_list.queue.append(LEDAnimation(key[0], key[1]))
+
+
+        self._animation_queue_pub.publish(animations_list)
         
 
     def _set_lights_callback(self, anim):
         '''rosservice callback for /lights/set/id'''
+        animation = None
         try:
-            if anim.id != 0 and not anim.name:
-                animation = self._led_config_importer.get_event(id=anim.id)
-            elif anim.id == 0 and anim.name:
-                animation = self._led_config_importer.get_event(name=anim.name)
+            if anim.animation.id != 0 and not anim.animation.name:
+                key = self._led_config_importer.event_key(id=anim.animation.id)
+            elif anim.animation.id == 0 and anim.animation.name:
+                key = self._led_config_importer.event_key(name=anim.animation.name)
             else:
-                animation = self._led_config_importer.get_event(id=anim.id, name=anim.name)
+                key = self._led_config_importer.event_key(id=anim.animation.id, name=anim.animation.name)
+            animation = self._led_config_importer.get_event(key)
             animation.param = anim.param
         except Exception as e:
             return 'failed'

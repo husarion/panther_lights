@@ -7,11 +7,11 @@ sys.path.append(os.path.abspath(__file__ + '/../../'))
 import unittest
 import yaml
 
-from src.panther_lights.event import Event
-from src.panther_lights.animations.animation import Animation
-from src.panther_lights.led_config_importer import LEDConfigImporter
-from src.panther_lights.animations.image_animation import ImageAnimation
-from src.panther_lights.animations.battery_animation import BatteryAnimation
+from src.panther_lights_controller.event import Event
+from src.panther_lights_controller.animations.animation import Animation
+from src.panther_lights_controller.led_config_importer import LEDConfigImporter
+from src.panther_lights_controller.animations.image_animation import ImageAnimation
+from src.panther_lights_controller.animations.battery_animation import BatteryAnimation
 
 
 class TestImport(unittest.TestCase):
@@ -101,8 +101,8 @@ class TestBothDefaultParameters(unittest.TestCase):
     def test_assert_animaition_type(self):
         self.assertTrue(isinstance(self._ex._front_animation, ImageAnimation),
                                    'front animation type is not matching ImageAnimation')
-        self.assertTrue(isinstance(self._ex._tail_animation, ImageAnimation),
-                                   'tail animation type is not matching ImageAnimation')
+        self.assertTrue(isinstance(self._ex._rear_animation, ImageAnimation),
+                                   'rear animation type is not matching ImageAnimation')
 
 
     def test_assert_parameters(self):
@@ -113,13 +113,13 @@ class TestBothDefaultParameters(unittest.TestCase):
         self.assertEqual(self._ex._front_animation._loops, 1, 'incorrect default loops')
 
 
-    def test_assert_equal_front_tail(self):
-        self.assertEqual(self._ex._front_animation._duration, self._ex._tail_animation._duration,
-                         'duration doesn\'t match front and tail')
-        self.assertEqual(self._ex._front_animation._loops, self._ex._tail_animation._loops,
-                         'loops doen\'t match front and tail')
-        self.assertEqual(self._ex._front_animation._brightness, self._ex._tail_animation._brightness,
-                         'brightness doesn\'t match front and tail')
+    def test_assert_equal_front_rear(self):
+        self.assertEqual(self._ex._front_animation._duration, self._ex._rear_animation._duration,
+                         'duration doesn\'t match front and rear')
+        self.assertEqual(self._ex._front_animation._loops, self._ex._rear_animation._loops,
+                         'loops doen\'t match front and rear')
+        self.assertEqual(self._ex._front_animation._brightness, self._ex._rear_animation._brightness,
+                         'brightness doesn\'t match front and rear')
 
 
 
@@ -137,8 +137,8 @@ class TestBothNonDefaultParameters(unittest.TestCase):
     def test_assert_animaition_type(self):
         self.assertTrue(isinstance(self._ex._front_animation, ImageAnimation),
                         'front animation type is not matching ImageAnimation')
-        self.assertTrue(isinstance(self._ex._tail_animation, ImageAnimation),
-                        'tail animation type is not matching ImageAnimation')
+        self.assertTrue(isinstance(self._ex._rear_animation, ImageAnimation),
+                        'rear animation type is not matching ImageAnimation')
 
 
     def test_assert_parameters(self):
@@ -176,11 +176,11 @@ class TestMultipleAnimations(unittest.TestCase):
 
 
 
-class TestDifferentForntTail(unittest.TestCase):
+class TestDifferentForntrear(unittest.TestCase):
 
     def setUp(self):
         conf_path = os.path.dirname(os.path.abspath(__file__)) + \
-                    '/config/events/events_single_different_fornt_tail.yaml'
+                    '/config/events/events_single_different_fornt_rear.yaml'
         conf_file = open(conf_path,'r')
         conf_yaml = yaml.load(conf_file, Loader=yaml.Loader)
         conf_file.close()
@@ -190,8 +190,8 @@ class TestDifferentForntTail(unittest.TestCase):
     def test_assert_animaition_type(self):
         self.assertTrue(isinstance(self._ex._front_animation, ImageAnimation),
                                    'front animation type is not matching ImageAnimation')
-        self.assertTrue(isinstance(self._ex._tail_animation, ImageAnimation),
-                                   'tail animation type is not matching ImageAnimation')
+        self.assertTrue(isinstance(self._ex._rear_animation, ImageAnimation),
+                                   'rear animation type is not matching ImageAnimation')
 
 
     def test_assert_parameters(self):
@@ -199,9 +199,9 @@ class TestDifferentForntTail(unittest.TestCase):
         self.assertEqual(self._ex._front_animation._loops, 3, 'incorrect front imported loops')
         self.assertEqual(self._ex._front_animation._brightness, 128, 'incorrect front imported brightness')
 
-        self.assertEqual(self._ex._tail_animation._duration, 5, 'incorrect tail imported duration')
-        self.assertEqual(self._ex._tail_animation._loops, 4, 'incorrect tail imported loops')
-        self.assertEqual(self._ex._tail_animation._brightness, 153, 'incorrect tail imported brightness')
+        self.assertEqual(self._ex._rear_animation._duration, 5, 'incorrect rear imported duration')
+        self.assertEqual(self._ex._rear_animation._loops, 4, 'incorrect rear imported loops')
+        self.assertEqual(self._ex._rear_animation._brightness, 153, 'incorrect rear imported brightness')
 
 
 
@@ -209,7 +209,7 @@ class TestNonImageAniumation(unittest.TestCase):
 
     def setUp(self):
         conf_path = os.path.dirname(os.path.abspath(__file__)) + \
-                    '/config/events/events_single_diffeternt_type_front_tail.yaml'
+                    '/config/events/events_single_diffeternt_type_front_rear.yaml'
         conf_file = open(conf_path,'r')
         conf_yaml = yaml.load(conf_file, Loader=yaml.Loader)
         conf_file.close()
@@ -220,8 +220,8 @@ class TestNonImageAniumation(unittest.TestCase):
     def test_assert_animaition_type(self):
         self.assertTrue(isinstance(self._ex._front_animation, ImageAnimation),
                         'front animation type is not matching ImageAnimation')
-        self.assertTrue(isinstance(self._ex._tail_animation, BatteryAnimation),
-                        'tail animation type is not matching ImageAnimation')
+        self.assertTrue(isinstance(self._ex._rear_animation, BatteryAnimation),
+                        'rear animation type is not matching ImageAnimation')
 
 
 class TestLedConfigImportSingleEventsFile(unittest.TestCase):
@@ -328,18 +328,21 @@ class TestLedConfigImportSingleEventsFile(unittest.TestCase):
 
         for id in animations.keys():
             name = animations[id]
-            self.assertEqual(led_conf_importer.get_event(id=id).id, id, 'incorrect animation id')
-            self.assertEqual(led_conf_importer.get_event(name=name).id, id, 'incorrect animation id')
-            self.assertEqual(led_conf_importer.get_event(id=id,name=name).id, id, 'incorrect animation id')
+            key = led_conf_importer.event_key(id=id)
+            self.assertEqual(led_conf_importer.get_event(key).id, id, 'incorrect animation id')
+            key = led_conf_importer.event_key(name=name)
+            self.assertEqual(led_conf_importer.get_event(key).id, id, 'incorrect animation id')
+            key = led_conf_importer.event_key(id=id,name=name)
+            self.assertEqual(led_conf_importer.get_event(key).id, id, 'incorrect animation id')
 
-            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, led_conf_importer.get_event, 0, name)
-            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, led_conf_importer.get_event, id, 'TEST_10')
+            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, led_conf_importer.event_key, 0, name)
+            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, led_conf_importer.event_key, id, 'TEST_10')
 
         for id in [-2, -1, 0, 10]:
-            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, led_conf_importer.get_event, id=id)
+            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, led_conf_importer.event_key, id=id)
 
         for name in ['', 'TEST_5']:
-            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, led_conf_importer.get_event, name=name)
+            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, led_conf_importer.event_key, name=name)
 
         
 
@@ -367,8 +370,10 @@ class TestLedConfigImportTwoEventsFiles(unittest.TestCase):
 
         for id in animations.keys():
             name = animations[id]
-            self.assertEqual(led_conf_importer.get_event(id=id).id, id, 'incorrect animation id')
-            self.assertEqual(led_conf_importer.get_event(name=name).id, id, 'incorrect animation id')
+            key = led_conf_importer.event_key(id=id)
+            self.assertEqual(led_conf_importer.get_event(key).id, id, 'incorrect animation id')
+            key = led_conf_importer.event_key(name=name)
+            self.assertEqual(led_conf_importer.get_event(key).id, id, 'incorrect animation id')
 
 
     def test_same_file(self):

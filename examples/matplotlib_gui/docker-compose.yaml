@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  panther_lights_controller:
+    build:
+      context: ./../../panther_lights_controller/platforms/panther_lights_controller_plt_gui
+    container_name: panther_lights_controller
+    stdin_open: true
+    tty: true 
+    environment:
+      - "DISPLAY"
+      - "QT_X11_NO_MITSHM=1"
+      - ROS_MASTER_URI=http://panther_lights_scheduler:11311
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - type: bind
+        source: ./../../panther_lights_controller/panther_lights_controller_base/panther_lights_controller
+        target: /ros_ws/src/panther_lights_controller
+      - type: bind
+        source: ./../../panther_lights_controller/panther_lights_controller_base/husarion_msgs
+        target: /ros_ws/src/husarion_msgs
+    command: rosrun panther_lights_controller controller_node.py
+
+  panther_lights_scheduler:
+    build:
+      context: ./../../panther_lights_scheduler/panther_lights_scheduler
+    container_name: panther_lights_scheduler
+    volumes:
+      - type: bind
+        source: ./../../panther_lights_scheduler/panther_lights_scheduler/panther_lights_scheduler
+        target: /ros_ws/src/panther_lights_scheduler
+      - type: bind
+        source: ./../../panther_lights_scheduler/panther_lights_scheduler/husarion_msgs
+        target: /ros_ws/src/husarion_msgs
+    command: roscore

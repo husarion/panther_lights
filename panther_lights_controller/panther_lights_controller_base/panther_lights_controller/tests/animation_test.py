@@ -7,14 +7,13 @@ import yaml
 import random
 import unittest
 import threading
-from threading import Lock
-from typing import Optional
 import numpy as np
+from typing import Optional
 
 sys.path.append(os.path.abspath(__file__ + '/../../'))
 
-from src.panther_lights.controller.controller import Controller
-from src.panther_lights.led_config_importer import LEDConfigImporter
+from src.panther_lights_controller.controller.controller import Controller
+from src.panther_lights_controller.led_config_importer import LEDConfigImporter
 
 
 class DummyController(Controller):
@@ -29,6 +28,9 @@ class DummyController(Controller):
         pass
 
     def set_brightness(self, bright):
+        pass
+
+    def clear_panel(self):
         pass
 
 
@@ -66,18 +68,19 @@ class TestAnimation(unittest.TestCase):
                     repeat = 1
                 estiamted_time_front = duration * repeat
 
-                duration = self._event_yaml['event'][i]['animation']['tail']['duration']
-                if 'repeat' in self._event_yaml['event'][i]['animation']['tail']:
-                    repeat = self._event_yaml['event'][i]['animation']['tail']['repeat']
+                duration = self._event_yaml['event'][i]['animation']['rear']['duration']
+                if 'repeat' in self._event_yaml['event'][i]['animation']['rear']:
+                    repeat = self._event_yaml['event'][i]['animation']['rear']['repeat']
                 else:
                     repeat = 1
-                estiamted_time_tail = duration * repeat
-                estiamted_time = max(estiamted_time_front, estiamted_time_tail)
+                estiamted_time_rear = duration * repeat
+                estiamted_time = max(estiamted_time_front, estiamted_time_rear)
                 
 
             times = np.zeros(10)
             for j in range(len(times)):
-                anim = self._led_config_importer.get_event(i+1)
+                key = self._led_config_importer.event_key(i+1)
+                anim = self._led_config_importer.get_event(key)
                 anim.spawn(self._dummy_controller)
                 start = time.time()
                 anim.run()
@@ -103,7 +106,8 @@ class TestAnimation(unittest.TestCase):
 
         for s in sleep_between:
             for p in percentages:
-                anim = self._led_config_importer.get_event(1)
+                key = self._led_config_importer.event_key(1)
+                anim = self._led_config_importer.get_event(key)
                 anim.spawn(self._dummy_controller)
                 start = time.time()
                 anim.run()
@@ -129,7 +133,8 @@ class TestAnimation(unittest.TestCase):
         percentages = [0.1, 0.3, 0.69, 0.8, 0.9]
 
         for p in percentages:
-            anim = self._led_config_importer.get_event(1)
+            key = self._led_config_importer.event_key(1)
+            anim = self._led_config_importer.get_event(key)
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
@@ -154,7 +159,8 @@ class TestAnimation(unittest.TestCase):
         percentages = [0.1, 0.3, 0.69, 0.8, 1]
 
         for p in percentages:
-            anim = self._led_config_importer.get_event(1)
+            key = self._led_config_importer.event_key(1)
+            anim = self._led_config_importer.get_event(key)
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
@@ -166,7 +172,8 @@ class TestAnimation(unittest.TestCase):
             del anim
 
         for p in percentages:
-            anim = self._led_config_importer.get_event(1)
+            key = self._led_config_importer.event_key(1)
+            anim = self._led_config_importer.get_event(key)
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
@@ -182,7 +189,8 @@ class TestAnimation(unittest.TestCase):
             del anim
 
         for p in percentages:
-            anim = self._led_config_importer.get_event(1)
+            key = self._led_config_importer.event_key(1)
+            anim = self._led_config_importer.get_event(key)
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
@@ -195,7 +203,8 @@ class TestAnimation(unittest.TestCase):
             del anim
 
         for p in percentages:
-            anim = self._led_config_importer.get_event(1)
+            key = self._led_config_importer.event_key(1)
+            anim = self._led_config_importer.get_event(key)
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
@@ -220,7 +229,8 @@ class TestAnimation(unittest.TestCase):
             spawn_count = int(random.random() * 15 + 1)
             for _ in range(spawn_count):
                 a_num = int(random.random() * 5 + 1)
-                anim = self._led_config_importer.get_event(a_num)
+                key = self._led_config_importer.event_key(a_num)
+                anim = self._led_config_importer.get_event(key)
                 anim.spawn(self._dummy_controller)
                 anims.append(anim)
             self.assertEqual(base_thread_count+spawn_count*2, threading.active_count(), 'threads counts doesn\'t match')

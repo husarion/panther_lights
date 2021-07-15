@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>husarion_msgs</name>
+  <version>0.0.1</version>
+  <description>messages used by Husarion robots</description>
+  <maintainer email="krzysztof.wojciechowski@husarion.com">Kotochleb</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+    <build_depend>message_generation</build_depend>
+    <exec_depend>message_runtime</exec_depend>
+    <depend>std_msgs</depend>
+
+    <export>
+        <architecture_independent/>
+    </export>
+</package>

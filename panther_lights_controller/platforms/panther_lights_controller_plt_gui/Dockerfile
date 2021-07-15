@@ -16,4 +16,4 @@ RUN apt clean && \
     
 WORKDIR /
 
-RUN echo "source \"/$ROS_WS/devel/setup.bash\"" >> ~/.bashrc
+RUN echo "source \"/ros_ws/devel/setup.bash\"" >> ~/.bashrc

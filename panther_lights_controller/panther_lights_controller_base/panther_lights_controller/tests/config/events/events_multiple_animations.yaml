@@ -4,7 +4,7 @@ event:
     interrupting: true
     animation:
       both:
-        image: /husarion_ws/src/panther_lights/tests/animations/blinker.png
+        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 1
 
   - id: 2
@@ -12,12 +12,12 @@ event:
     interrupting: false
     animation:
       both:
-        image: /husarion_ws/src/panther_lights/tests/animations/blinker.png
+        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 1
 
   - id: 3
     name: 'TEST_3'
     animation:
       both:
-        image: /husarion_ws/src/panther_lights/tests/animations/blinker.png
+        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 1

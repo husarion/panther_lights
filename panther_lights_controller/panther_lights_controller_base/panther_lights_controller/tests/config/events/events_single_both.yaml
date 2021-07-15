@@ -3,5 +3,5 @@ event:
     name: 'TEST'
     animation:
       both:
-        image: /husarion_ws/src/panther_lights/tests/animations/blinker.png
+        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 1

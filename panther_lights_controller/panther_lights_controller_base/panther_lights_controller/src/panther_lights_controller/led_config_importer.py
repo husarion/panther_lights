@@ -32,7 +32,6 @@ class LEDConfigImporter:
         self._global_brightness = int(round(self._global_brightness * 255))
         self._num_led = self._yaml['num_led']
         self._imported_animations = {}
-        self._added_animations = {}
 
         self._id_map = {}
         self._name_map = {}
@@ -91,23 +90,24 @@ class LEDConfigImporter:
                                                                             self._global_brightness)
 
 
-    def get_event(self, id: Optional[int]=None, name: Optional[int]=None):
+    def get_event(self, key):
         '''returns event by it's key, name or both'''
-        key_file = self._get_event_key(self._imported_animations, id=id, name=name)
-        key_added = self._get_event_key(self._added_animations, id=id, name=name)
+        return copy.deepcopy(self._imported_animations[key])
 
-        if key_file is not None:
-            return copy.deepcopy(self._imported_animations[key_file])
-        elif key_added is not None:
-            return copy.deepcopy(self._added_animations[key_added])
+
+    def event_key(self, id: Optional[int]=None, name: Optional[int]=None):
+        '''checks if given id or name exists in all imported animations and returns it's key'''
+        key = self._get_animation_list_key(self._imported_animations, id=id, name=name)
+        if key is not None:
+            return key
         elif id is not None:
             raise LEDConfigImporter.LEDConfigImporterError(f'animation with ID: {id} is not defined')
         else:
             raise LEDConfigImporter.LEDConfigImporterError(f'animation with name: {name} is not defined')
 
 
-    def _get_event_key(self, animation_list, id: Optional[int]=None, name: Optional[int]=None):
-        '''checks if event with given key or name exists and returns it key'''
+    def _get_animation_list_key(self, animation_list, id: Optional[int]=None, name: Optional[int]=None):
+        '''checks if event with given key or name exists in given animation list and returns it key'''
         if animation_list:
             if id is not None and name is not None:
                 if (id, name) in animation_list.keys():

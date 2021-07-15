@@ -7,28 +7,18 @@ add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  std_msgs
-  message_generation
+  husarion_msgs
 )
 
 catkin_python_setup()
 
-add_service_files(
-  FILES
-  LEDBrightness.srv
-  LEDPanel.srv
-  LEDAnimation.srv
-  LEDImageAnimation.srv
- )
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
-
 catkin_package(
-  CATKIN_DEPENDS rospy message_runtime
+  CATKIN_DEPENDS
+  rospy
+  husarion_msgs
+  message_runtime
 )
+
 
 if (CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(
@@ -38,16 +28,11 @@ if (CATKIN_ENABLE_TESTING)
 endif()
 
 
-#############
-## Install ##
-#############
-
 install(PROGRAMS
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 
-## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES
   config/led_conf.yaml
   config/panther_events.yaml
