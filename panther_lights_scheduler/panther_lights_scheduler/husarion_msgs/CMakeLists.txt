@@ -8,6 +8,7 @@ add_message_files(
     FILES
     LEDAnimation.msg
     LEDAnimationArr.msg
+    PantherDriverStatus.msg
 )
 
 add_service_files(

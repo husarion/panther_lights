@@ -39,14 +39,14 @@ class LightsControllerNode:
         self._current_animation = None
 
         rospy.init_node('lights_controller_node')
-        self._animation_queue_pub = rospy.Publisher('queue', LEDAnimationArr, queue_size=10)
-        self._set_lights_service = rospy.Service('set/id', LEDSetId, self._set_lights_callback)
-        self._set_image_animation_service = rospy.Service('set/image', LEDSetImageAnimation, self._set_image_animation_callback)
-        self._set_brightness_service = rospy.Service('brightness', LEDBrightness, self._brightness_callback)
-        self._set_panel_state_service = rospy.Service('panel_state', LEDPanel, self._panel_state_callback)
-        self._set_panel_state_service = rospy.Service('clear_panel', LEDPanel, self._clear_panel_callback)
-        self._set_panel_state_service = rospy.Service('clear_queue', SetBool, self._clear_queue_callback)
-        self._set_panel_state_service = rospy.Service('kill_current_anim', SetBool, self._kill_current_anim_callback)
+        self._animation_queue_pub = rospy.Publisher('lights/controller/queue', LEDAnimationArr, queue_size=10)
+        self._set_lights_service = rospy.Service('lights/controller/set/id', LEDSetId, self._set_lights_callback)
+        self._set_image_animation_service = rospy.Service('lights/controller/set/image', LEDSetImageAnimation, self._set_image_animation_callback)
+        self._set_brightness_service = rospy.Service('lights/controller/brightness', LEDBrightness, self._brightness_callback)
+        self._set_panel_state_service = rospy.Service('lights/controller/panel_state', LEDPanel, self._panel_state_callback)
+        self._set_panel_state_service = rospy.Service('lights/controller/clear_panel', LEDPanel, self._clear_panel_callback)
+        self._set_panel_state_service = rospy.Service('lights/controller/clear_queue', SetBool, self._clear_queue_callback)
+        self._set_panel_state_service = rospy.Service('lights/controller/kill_current_anim', SetBool, self._kill_current_anim_callback)
         self._lights_controller_timer = rospy.Timer(rospy.Duration(0.05), self._lights_controller)
 
         rospy.loginfo(f'{rospy.get_name()} started')

@@ -8,6 +8,8 @@ add_compile_options(-std=c++14)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   husarion_msgs
+  actionlib_msgs
+  sensor_msgs
 )
 
 catkin_python_setup()
@@ -16,6 +18,8 @@ catkin_package(
   CATKIN_DEPENDS
   rospy
   husarion_msgs
+  actionlib_msgs
+  sensor_msgs
   message_runtime
 )
 
