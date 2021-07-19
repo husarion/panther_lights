@@ -37,3 +37,9 @@ fields *id* and *name* are used to determinate animation described in *config.ya
 - `config_path` *(string, default '$(panther_lights_controller)/config/led_config.yaml)* - YAML file containing panel configuration.
 - `global_brightness` *(float, default 1)* - global brightness ranges between 0 to 1.
 - `num_led` - *(int, default 46)* - LED count for both panels.
+
+
+## More instructions
+More detailed instructions can be found in *README<span>.</span>md* files in following directories:
+- how to configure animations - */docs*
+- controller specific dependencies - */platforms/<platform>*

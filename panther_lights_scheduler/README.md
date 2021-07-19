@@ -1,4 +1,4 @@
-# Animation scheduler for `panther_lights`
+# Panther Lights animation scheduler
 
 Panther Lights Scheduler is dockerized ROS node deciding which animation will be shown at the time. Node reads `/panther_driver/manager/status`. Based on that displays animation for given state. Here is list of animation and their meaning:
 
