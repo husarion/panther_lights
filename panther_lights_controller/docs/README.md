@@ -134,5 +134,4 @@ from .your_animation import YourAnimation
 BASIC_ANIMATIONS = {
         MyAnimation.ANIMATION_NAME : MyAnimation
 }
-
 ```
