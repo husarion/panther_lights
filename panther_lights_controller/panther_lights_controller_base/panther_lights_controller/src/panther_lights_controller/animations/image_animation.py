@@ -38,7 +38,7 @@ class ImageAnimation(Animation):
             self._img = 0.2989 * self._img[:,:,0] \
                       + 0.5870 * self._img[:,:,1] \
                       + 0.1140 * self._img[:,:,2]
-            # normalise brightness
+            # normalize brightness
             self._img = self._img / np.max(self._img) * 255
             img_r = (self._img.astype(np.uint32) * r / 255).astype(np.uint8)
             img_g = (self._img.astype(np.uint32) * g / 255).astype(np.uint8)
@@ -46,7 +46,7 @@ class ImageAnimation(Animation):
             # reconstruct image
             self._img = np.dstack((img_r,img_g,img_b))
 
-        # conver image from RGB to HEX
+        # convert image from RGB to HEX
         self._img = self._img.astype(np.uint32)
         r = self._img[:,:,0] << 16
         g = self._img[:,:,1] << 8

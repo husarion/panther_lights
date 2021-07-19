@@ -10,9 +10,9 @@ import RPi.GPIO as GPIO
 from .controller import Controller
 
 class HardwareAPA102Controller(Controller):
-    LED_SWITCH_FRONT_STATE = True   # High - front panel
-    LED_SWITCH_REAR_STATE  = False  # Low  - rear panel
-    LED_POWER_ON_STATE     = False  # active LEDs with low state
+    LED_SWITCH_FRONT_STATE = GPIO.HIGH
+    LED_SWITCH_REAR_STATE  = GPIO.LOW
+    LED_POWER_ON_STATE     = GPIO.LOW  # active LED with low state
 
 
 
@@ -22,7 +22,7 @@ class HardwareAPA102Controller(Controller):
                  brightness: Optional[int] = 15,
                  led_switch_pin: Optional[int] = 20,
                  led_power_pin: Optional[int] = 26):
-        '''hardware abstraction of APA102 LEDs used in Panther robot'''
+        '''hardware abstraction of APA102 LED used in Panther robot'''
 
         self._num_led = num_led
         self._panel_count = panel_count
@@ -89,7 +89,7 @@ class HardwareAPA102Controller(Controller):
             else:
                 raise ValueError('panther lights have only two panels')
 
-            # set all leds in this panel
+            # set all LED in this panel
             for i in range(self._num_led):
                 self._pixels.set_pixel_rgb(i, int(panel[1][i]), brightness)
             self._pixels.show()
@@ -116,7 +116,7 @@ class HardwareAPA102Controller(Controller):
                 self._rear_active = state
 
     
-    def set_brightness(self, bright):
+    def set_brightness(self, brightness):
         '''sets panel brightness'''
         with self._lock:
             self._global_brightness = brightness

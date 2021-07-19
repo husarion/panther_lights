@@ -4,7 +4,7 @@ event:
     interrupting: true
     animation:
       both:
-        image: blinker.png
+        image: emergency.png
         duration: 3
 
   - id: 2
@@ -12,7 +12,7 @@ event:
     interrupting: true
     animation:
       both:
-        image: blinker.png
+        image: error_occured.png
         duration: 3
         repeat: 2
 
@@ -21,7 +21,7 @@ event:
     interrupting: True
     animation:
       both:
-        image: blinker.png
+        image: goal_archived.png
         duration: 3
         repeat: 3
 
@@ -31,7 +31,7 @@ event:
     interrupting: True
     animation:
       both:
-        image: blinker.png
+        image: critical_battery.png
         duration: 2
         repeat: 2
 
@@ -39,7 +39,7 @@ event:
     name: 'LOW_BATTERY'
     animation:
       both:
-        image: blinker.png
+        image: low_battery.png
         duration: 2
         repeat: 2
 
@@ -53,23 +53,23 @@ event:
         repeat: 5
 
   - id: 7
-    name: 'AUTONOMUS_ACTION'
+    name: 'AUTONOMOUS_ACTION'
     animation:
       both:
-        image: blinker.png
+        image: autonomous_action.png
         duration: 3
 
   - id: 8
     name: 'MANUAL_ACTION'
     animation:
       both:
-        image: blinker.png
+        image: joystick_web_ui.png
         duration: 3
 
   - id: 9
     name: 'READY'
     animation:
       both:
-        image: blinker.png
+        image: ready.png
         duration: 1
 

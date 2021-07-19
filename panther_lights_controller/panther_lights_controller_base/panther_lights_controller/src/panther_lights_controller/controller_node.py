@@ -15,30 +15,11 @@ from husarion_msgs.srv import LEDBrightness, LEDPanel, LEDSetId, LEDSetImageAnim
 
 class LightsControllerNode:
     
-    def __init__(self,
-                 config_path=None):
+    def __init__(self):
         '''lights_controller_node class'''
-        if config_path is None:
-            config_path = '../../config/led_conf.yaml'
-
-        src_path = os.path.dirname(os.path.abspath(__file__))
-        conf_path = os.path.join(src_path, config_path)
-        conf_file = open(conf_path,'r')
-        conf_yaml = yaml.load(conf_file, Loader=yaml.Loader)
-        conf_file.close()
-
-        self._led_config_importer = LEDConfigImporter(conf_yaml)
-        self._num_led = self._led_config_importer.num_led
-        self._global_brightness = self._led_config_importer.global_brightness
-
-        self._controller = Controller(num_led=self._num_led,
-                                      brightness=self._global_brightness)
-
-        self._anim_queue = []
-        self._interrupt = False
-        self._current_animation = None
 
         rospy.init_node('lights_controller_node')
+
         self._animation_queue_pub = rospy.Publisher('lights/controller/queue', LEDAnimationArr, queue_size=10)
         self._set_lights_service = rospy.Service('lights/controller/set/id', LEDSetId, self._set_lights_callback)
         self._set_image_animation_service = rospy.Service('lights/controller/set/image', LEDSetImageAnimation, self._set_image_animation_callback)
@@ -48,6 +29,28 @@ class LightsControllerNode:
         self._set_panel_state_service = rospy.Service('lights/controller/clear_queue', SetBool, self._clear_queue_callback)
         self._set_panel_state_service = rospy.Service('lights/controller/kill_current_anim', SetBool, self._kill_current_anim_callback)
         self._lights_controller_timer = rospy.Timer(rospy.Duration(0.05), self._lights_controller)
+
+        self._config_path = rospy.get_param('config_path', 0.2)
+        self._global_brightness = rospy.get_param('global_brightness', 30)
+        self._num_led = rospy.get_param('num_led', 10)
+
+
+        src_path = os.path.dirname(os.path.abspath(__file__))
+        conf_path = os.path.join(src_path, self._config_path)
+        conf_file = open(conf_path,'r')
+        conf_yaml = yaml.load(conf_file, Loader=yaml.Loader)
+        conf_file.close()
+
+        self._led_config_importer = LEDConfigImporter(yaml_file=conf_yaml,
+                                                      brightness=self._global_brightness,
+                                                      num_led=self._num_led)
+
+        self._controller = Controller(num_led=self._num_led,
+                                      brightness=self._global_brightness)
+
+        self._anim_queue = []
+        self._interrupt = False
+        self._current_animation = None
 
         rospy.loginfo(f'{rospy.get_name()} started')
 
@@ -175,7 +178,7 @@ class LightsControllerNode:
 
 
     def _brightness_callback(self, msg):
-        '''rosservice callback for /lights/brightbness'''
+        '''rosservice callback for /lights/brightness'''
         self._controller.set_brightness(msg.data)
         return f'brightness: {msg.data}'
 
@@ -215,7 +218,7 @@ class LightsControllerNode:
             except Exception as e:
                 pass
             return (False, 'failed to kill animation')
-        return (True, 'animaiton not killed as requested')
+        return (True, 'animation not killed as requested')
 
 
 def main():

@@ -21,11 +21,11 @@ RUN pip3 install \
 
 # Create and initialise ROS workspace
 RUN mkdir -p /$ROS_WS/src
-COPY ./husarion_msgs /$ROS_WS/src/husarion_msgs
 COPY ./panther_lights_scheduler /$ROS_WS/src/panther_lights_scheduler/
 RUN chmod +x /$ROS_WS/src/panther_lights_scheduler/src/panther_lights_scheduler/lights_scheduler_node.py
 WORKDIR /$ROS_WS
-RUN mkdir build && \
+RUN git clone https://github.com/husarion/husarion_msgs.git --branch dev src/husarion_msgs && \
+    mkdir build && \
     source /opt/ros/$ROS_DISTRO/setup.bash && \
     rosdep init && \
     rosdep update && \

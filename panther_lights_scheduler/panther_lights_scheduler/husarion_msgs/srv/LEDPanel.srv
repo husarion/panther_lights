@@ -1,6 +1,0 @@
-uint8 FRONT_PANEL = 0
-uint8 RER_PANEL = 1
-uint8 panel
-bool data
----
-string result

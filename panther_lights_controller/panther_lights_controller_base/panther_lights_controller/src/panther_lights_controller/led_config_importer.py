@@ -15,22 +15,22 @@ class LEDConfigImporter:
             super().__init__(self.message)
 
 
-    def __init__(self, yaml_file):
+    def __init__(self, yaml_file, global_brightness, num_led):
         '''class importing panel configuration and events definitions'''
         self._yaml = yaml_file
 
         # Check if obligatory keyword exist
-        global_keywords = ['global_brightness', 'num_led', 'event_animations_files']
+        global_keywords = ['event_animations_files']
         if not set(global_keywords).issubset(self._yaml.keys()):
             missing_keywords = set(global_keywords) - set(self._yaml.keys())
             raise LEDConfigImporter.LEDConfigImporterError(f'no {missing_keywords}')
 
-        self._global_brightness = float(self._yaml['global_brightness'])
+        self._global_brightness = global_brightness
         if not (0 < self._global_brightness <= 1):
             raise LEDConfigImporter.LEDConfigImporterError(f'brightness has match boundaries 0 < brightness <= 1')
 
         self._global_brightness = int(round(self._global_brightness * 255))
-        self._num_led = self._yaml['num_led']
+        self._num_led = num_led
         self._imported_animations = {}
 
         self._id_map = {}
@@ -140,7 +140,7 @@ class LEDConfigImporter:
 
     @property
     def global_brightness(self):
-        '''reurns imported global brightness'''
+        '''returns imported global brightness'''
         return self._global_brightness
 
 

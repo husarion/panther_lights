@@ -12,7 +12,4 @@ services:
       - type: bind
         source: ./../../panther_lights_controller/panther_lights_controller_base/panther_lights_controller
         target: /ros_ws/src/panther_lights_controller
-      - type: bind
-        source: ./../../panther_lights_controller/panther_lights_controller_base/husarion_msgs
-        target: /ros_ws/src/husarion_msgs
     command: rosrun panther_lights_controller controller_node.py

@@ -5,7 +5,7 @@ from .animations import AnimationRuntime, BASIC_ANIMATIONS
 class Event:
 
     class EventError (Exception):
-        '''basig error for event'''
+        '''basic error for event'''
         def __init__(self, message='YAML keyword error'):
             self.message = message
             super().__init__(self.message)

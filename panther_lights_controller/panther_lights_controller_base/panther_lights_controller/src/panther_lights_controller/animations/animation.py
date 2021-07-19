@@ -24,7 +24,7 @@ class Animation:
 
         # Check for obligatory keys
         animation_keywords = ['duration']
-        if not 'duration' in anim_yaml.keys():
+        if not animation_keywords in anim_yaml.keys():
             raise Animation.AnimationYAMLError('no duration in parameters YAML')
 
         self._duration = anim_yaml['duration']
@@ -93,7 +93,7 @@ class Animation:
 
     @property
     def num_led(self):
-        '''returns panel's LEDs count'''
+        '''returns panel's LED count'''
         return self._num_led
 
 

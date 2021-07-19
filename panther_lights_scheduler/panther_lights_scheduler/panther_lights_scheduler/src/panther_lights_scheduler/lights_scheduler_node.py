@@ -3,6 +3,7 @@
 from typing import Optional
 
 import rospy
+from std_srvs.srv import SetBool
 
 from sensor_msgs.msg import BatteryState
 from actionlib_msgs.msg import GoalStatusArray, GoalStatus
@@ -15,20 +16,20 @@ class LightsSchedulerNode:
         '''lights_scheduler_node class'''
 
         self._current_state = None
-        self._aniamtion_queue = None
+        self._animation_queue = None
 
         self._state_animations = {
             PantherDriverStatus.STATE_ACCEPT_ALL_STATE : 'READY',
             PantherDriverStatus.STATE_DEAD_MAN_STATE : 'ERROR',
             PantherDriverStatus.STATE_JOY_STATE : 'MANUAL_ACTION',
-            PantherDriverStatus.STATE_AUTONOMUS_STATE : 'AUTONOMUS_ACTION'
+            PantherDriverStatus.STATE_AUTONOMOUS_STATE : 'AUTONOMOUS_ACTION'
         }
 
-        self._backgorund_anim = {
+        self._background_anim = {
             'READY' : (9, 'READY'),
             'ERROR' : (2, 'ERROR'),
             'MANUAL_ACTION' : (8, 'MANUAL_ACTION'),
-            'AUTONOMUS_ACTION' : (7, 'AUTONOMUS_ACTION')
+            'AUTONOMOUS_ACTION' : (7, 'AUTONOMOUS_ACTION')
         }
 
         self._event_animations = {
@@ -44,6 +45,10 @@ class LightsSchedulerNode:
         self._panther_state = None
         self._current_goal = None
         self._last_anim = None
+
+        self._low_bat_val = rospy.get_param('low_battery_margin', 0.2)
+        self._low_bat_duration = rospy.get_param('low_battery_anim_delay', 30)
+        self._critical_bat_duration = rospy.get_param('critical_battery_anim_delay', 10)
 
         rospy.init_node('lights_scheduler_node')
 
@@ -73,12 +78,12 @@ class LightsSchedulerNode:
 
 
     def _low_battery_anim(self, *args):
-        '''calls animation service with battery vallue'''
+        '''calls animation service with battery value'''
         self._set_animation_srv(self._event_animations['LOW_BATTERY'])
 
 
     def _critical_battery_anim(self, *args):
-        '''calls animation service with battery vallue'''
+        '''calls animation service with battery value'''
         self._set_animation_srv(self._event_animations['CRITICAL_BATTERY'])
 
     
@@ -122,35 +127,26 @@ class LightsSchedulerNode:
 
     def _clear_animation_from_queue_srv(self, key):
         '''calls animation service'''
-        rospy.logwarn(f'setting animation {key}, with param: \'{param}\'')
         rospy.wait_for_service('lights/controller/clear/animation_from_queue')
         try:
-            set_id = rospy.ServiceProxy('lights/controller/clear/animation_from_queue', LEDSetId)
-            req = LEDSetIdRequest()
-            req.animation.id = key[0]
-            req.animation.name = key[1]
-            req.param = ''
-            resp = set_id(req)
-            if resp.result == 'success':
-                return True
-        
-            rospy.logwarn(f'failed to set animation {key}')
-            return False
+            clear_queue = rospy.ServiceProxy('lights/controller/clear/animation_from_queue', SetBool)
+            resp = clear_queue(True)
+            return resp.success
         except rospy.ServiceException as e:
             rospy.logwarn(f'service call failed: {e}')
 
     
     def _animation_queue_callback(self, msg):
-        '''callback subscrybing to lights queue'''
-        self._aniamtion_queue = msg.queue
-        if not self._aniamtion_queue:
-            if self._last_anim and not self._last_anim[0] in set([anim[0] for anim in self._backgorund_anim.values()]):
+        '''callback subscribing to lights queue'''
+        self._animation_queue = msg.queue
+        if not self._animation_queue:
+            if self._last_anim and not self._last_anim[0] in set([anim[0] for anim in self._background_anim.values()]):
                 if self._panther_state:
-                    key = self._backgorund_anim[self._state_animations[self._panther_state]]
+                    key = self._background_anim[self._state_animations[self._panther_state]]
                     self._set_animation_srv(key)
         
-        elif len(self._aniamtion_queue) == 1:
-            self._last_anim = (self._aniamtion_queue[0].id, self._aniamtion_queue[0].name)
+        elif len(self._animation_queue) == 1:
+            self._last_anim = (self._animation_queue[0].id, self._animation_queue[0].name)
 
 
     def _battery_callback(self, msg):
@@ -159,14 +155,14 @@ class LightsSchedulerNode:
             if self._low_battery_anim_timer:
                 self._low_battery_anim_timer.shutdown()
             rospy.loginfo('starting to display critical battery message')
-            self._critical_battery_anim_timer = rospy.Timer(rospy.Duration(10), self._critical_battery_anim)
+            self._critical_battery_anim_timer = rospy.Timer(rospy.Duration(self._critical_bat_duration), self._critical_battery_anim)
             self._critical_battery_animating = True
             return
-        elif self._battery_percentage <= 0.2 and not self._low_battery_animating:
+        elif self._battery_percentage <= self._low_bat_val and not self._low_battery_animating:
             if self._critical_battery_anim_timer:
                 self._critical_battery_anim_timer.shutdown()
             rospy.loginfo('starting to display low battery message')
-            self._low_battery_anim_timer = rospy.Timer(rospy.Duration(30), self._low_battery_anim)
+            self._low_battery_anim_timer = rospy.Timer(rospy.Duration(self._low_bat_duration), self._low_battery_anim)
             self._low_battery_animating = True
             return
         else:
@@ -182,14 +178,14 @@ class LightsSchedulerNode:
 
     def _panther_driver_status_callback(self, msg):
         self._panther_state = msg.state
-        if not self._aniamtion_queue:
+        if not self._animation_queue:
             rospy.loginfo('setting state')
-            key = self._backgorund_anim[self._state_animations[self._panther_state]]
+            key = self._background_anim[self._state_animations[self._panther_state]]
             self._set_animation_srv(key)
 
 
     def _goal_status_callback(self, msg):
-        if self._panther_state == PantherDriverStatus.STATE_AUTONOMUS_STATE:
+        if self._panther_state == PantherDriverStatus.STATE_AUTONOMOUS_STATE:
             last_goal = self._current_goal
             for goal in msg.status_list:
                 if goal.status == GoalStatus.ACTIVE:

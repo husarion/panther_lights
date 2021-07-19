@@ -1,5 +1,2 @@
-global_brightness: 1
-num_led: 46
-
 event_animations_files:
   - panther_events.yaml

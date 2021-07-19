@@ -17,7 +17,7 @@ class VirtualLEDController(Controller):
                  num_led,
                  panel_count: Optional[int] = 2,
                  brightness: Optional[int] = 255):
-        '''virtual LED controller based on mapltotlib'''
+        '''virtual LED controller based on matplotlib'''
 
         self._num_led = num_led
         self._panel_count = panel_count
@@ -89,7 +89,7 @@ class VirtualLEDController(Controller):
             self._panel_states[panel_num] = state
 
 
-    def set_brightness(self, bright):
+    def set_brightness(self, brightness):
         '''sets panel brightness'''
         with self._lock:
             self._global_brightness = brightness
