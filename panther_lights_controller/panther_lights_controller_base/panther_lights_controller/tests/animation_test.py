@@ -47,7 +47,7 @@ class TestAnimation(unittest.TestCase):
         conf_file = open(conf_path,'r')
         conf_yaml = yaml.load(conf_file, Loader=yaml.Loader)
         conf_file.close()
-        self._led_config_importer = LEDConfigImporter(conf_yaml)
+        self._led_config_importer = LEDConfigImporter(conf_yaml, 1, 46)
         self._dummy_controller = DummyController()
 
 
@@ -59,22 +59,22 @@ class TestAnimation(unittest.TestCase):
                     repeat = self._event_yaml['event'][i]['animation']['both']['repeat']
                 else:
                     repeat = 1
-                estiamted_time = duration * repeat
+                estimated_time = duration * repeat
             else:
                 duration = self._event_yaml['event'][i]['animation']['front']['duration']
                 if 'repeat' in self._event_yaml['event'][i]['animation']['front']:
                     repeat = self._event_yaml['event'][i]['animation']['front']['repeat']
                 else:
                     repeat = 1
-                estiamted_time_front = duration * repeat
+                estimated_time_front = duration * repeat
 
                 duration = self._event_yaml['event'][i]['animation']['rear']['duration']
                 if 'repeat' in self._event_yaml['event'][i]['animation']['rear']:
                     repeat = self._event_yaml['event'][i]['animation']['rear']['repeat']
                 else:
                     repeat = 1
-                estiamted_time_rear = duration * repeat
-                estiamted_time = max(estiamted_time_front, estiamted_time_rear)
+                estimated_time_rear = duration * repeat
+                estimated_time = max(estimated_time_front, estimated_time_rear)
                 
 
             times = np.zeros(10)
@@ -89,9 +89,9 @@ class TestAnimation(unittest.TestCase):
                 times[j] = time.time() - start
                 del anim
             finish_avg = np.mean(times)
-            deviation = (abs(finish_avg - estiamted_time) / estiamted_time)
+            deviation = (abs(finish_avg - estimated_time) / estimated_time)
             covariance = np.cov(times)
-            self.assertTrue(deviation < 0.1, f'failed for animation {i}. Expected time: {estiamted_time}, ' \
+            self.assertTrue(deviation < 0.1, f'failed for animation {i}. Expected time: {estimated_time}, ' \
                             + f'Average time: {finish_avg}, Deviation: {deviation}')
             self.assertTrue(covariance < 1e-5, f'failed for animation {i}. Covariance: {covariance}')
 
@@ -99,7 +99,7 @@ class TestAnimation(unittest.TestCase):
     def test_stop_run(self):
         duration = self._event_yaml['event'][0]['animation']['both']['duration']
         repeat = self._event_yaml['event'][0]['animation']['both']['repeat']
-        estiamted_time = duration * repeat
+        estimated_time = duration * repeat
 
         percentages = [0.1, 0.3, 0.69, 0.8, 0.9]
         sleep_between = [0.5, 1, 1.5, 2]
@@ -111,7 +111,7 @@ class TestAnimation(unittest.TestCase):
                 anim.spawn(self._dummy_controller)
                 start = time.time()
                 anim.run()
-                time.sleep(estiamted_time * p)
+                time.sleep(estimated_time * p)
                 anim.stop()
                 time.sleep(s)
                 anim.run()
@@ -120,15 +120,15 @@ class TestAnimation(unittest.TestCase):
                 finish = time.time() - start
                 del anim
 
-                deviation = (abs(finish - estiamted_time - s) / estiamted_time)
-                self.assertTrue(deviation < 0.15, f'failed for animation {0}. Expected time: {estiamted_time}, ' \
+                deviation = (abs(finish - estimated_time - s) / estimated_time)
+                self.assertTrue(deviation < 0.15, f'failed for animation {0}. Expected time: {estimated_time}, ' \
                                 + f'Average time: {finish}, Deviation: {deviation}')
 
 
     def test_reset(self):
         duration = self._event_yaml['event'][0]['animation']['both']['duration']
         repeat = self._event_yaml['event'][0]['animation']['both']['repeat']
-        estiamted_time = duration * repeat
+        estimated_time = duration * repeat
 
         percentages = [0.1, 0.3, 0.69, 0.8, 0.9]
 
@@ -138,7 +138,7 @@ class TestAnimation(unittest.TestCase):
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
-            time.sleep(estiamted_time * p)
+            time.sleep(estimated_time * p)
             anim.stop()
             anim.reset()
             anim.run()
@@ -147,15 +147,15 @@ class TestAnimation(unittest.TestCase):
             finish = time.time() - start
             del anim
 
-            deviation = (abs(finish - estiamted_time - (estiamted_time * p)) / estiamted_time)
-            self.assertTrue(deviation < 0.1, f'failed for animation {0}. Expected time: {estiamted_time}, ' \
+            deviation = (abs(finish - estimated_time - (estimated_time * p)) / estimated_time)
+            self.assertTrue(deviation < 0.1, f'failed for animation {0}. Expected time: {estimated_time}, ' \
                             + f'Average time: {finish}, Deviation: {deviation}')
     
 
     def test_percentage(self):
         duration = self._event_yaml['event'][0]['animation']['both']['duration']
         repeat = self._event_yaml['event'][0]['animation']['both']['repeat']
-        estiamted_time = duration * repeat
+        estimated_time = duration * repeat
         percentages = [0.1, 0.3, 0.69, 0.8, 1]
 
         for p in percentages:
@@ -164,7 +164,7 @@ class TestAnimation(unittest.TestCase):
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
-            time.sleep(estiamted_time * p)
+            time.sleep(estimated_time * p)
             anim.stop()
             deviation = (abs(p - anim.percent_done) / p)
             self.assertTrue(deviation < 0.01, f'failed for animation {0}. Expected percentage: {p}, ' \
@@ -177,11 +177,11 @@ class TestAnimation(unittest.TestCase):
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
-            time.sleep(estiamted_time * p / 2)
+            time.sleep(estimated_time * p / 2)
             anim.stop()
-            time.sleep(estiamted_time * p)
+            time.sleep(estimated_time * p)
             anim.run()
-            time.sleep(estiamted_time * p / 2)
+            time.sleep(estimated_time * p / 2)
             anim.stop()
             deviation = (abs(p - anim.percent_done) / p)
             self.assertTrue(deviation < 0.01, f'failed for animation {0}. Expected percentage: {p}, ' \
@@ -194,7 +194,7 @@ class TestAnimation(unittest.TestCase):
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
-            time.sleep(estiamted_time * p)
+            time.sleep(estimated_time * p)
             percentage = anim.percent_done
             anim.stop()
             deviation = (abs(p - percentage) / p)
@@ -208,11 +208,11 @@ class TestAnimation(unittest.TestCase):
             anim.spawn(self._dummy_controller)
             start = time.time()
             anim.run()
-            time.sleep(estiamted_time * p / 2)
+            time.sleep(estimated_time * p / 2)
             anim.stop()
-            time.sleep(estiamted_time * p)
+            time.sleep(estimated_time * p)
             anim.run()
-            time.sleep(estiamted_time * p / 2)
+            time.sleep(estimated_time * p / 2)
             percentage = anim.percent_done
             anim.stop()
             deviation = (abs(p - percentage) / p)

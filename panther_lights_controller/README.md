@@ -12,7 +12,10 @@ Autonomous action is integrated with *move_base* package and reads it's goal que
 ## Calling animation
 In order to execute animation you have to call service `/lights/controller/set/id`. The call will look like this:
 ```
-TODO rosservice call /lights/controller/set/id
+rosservice call /lights/controller/set/id "animation:
+  id: 1
+  name: 'E-STOP'
+param: ''"
 ```
 
 fields *id* and *name* are used to determinate animation described in *config.yaml*. In order to call animation you can only specify *id* or *name*. If both are specified node will check if they match.

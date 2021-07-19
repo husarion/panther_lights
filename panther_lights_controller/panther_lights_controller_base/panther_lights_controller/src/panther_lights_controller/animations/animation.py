@@ -23,8 +23,7 @@ class Animation:
         self._param = None
 
         # Check for obligatory keys
-        animation_keywords = ['duration']
-        if not animation_keywords in anim_yaml.keys():
+        if not 'duration' in anim_yaml.keys():
             raise Animation.AnimationYAMLError('no duration in parameters YAML')
 
         self._duration = anim_yaml['duration']

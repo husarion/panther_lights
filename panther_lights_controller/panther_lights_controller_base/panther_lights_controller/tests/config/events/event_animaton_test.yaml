@@ -3,7 +3,7 @@ event:
     name: 'E-STOP'
     animation:
       both:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/blinker.png
         color: 0xFFFF00
         duration: 0.1
         repeat: 10
@@ -14,13 +14,13 @@ event:
     interrupting: true
     animation:
       front:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 1
         repeat: 1
         keep_state: False
 
       rear:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 2
         keep_state: False
 
@@ -30,7 +30,7 @@ event:
     interrupting: True
     animation:
       both:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/test_pattern.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/test_pattern.png
         duration: 0.2
 
 
@@ -38,7 +38,7 @@ event:
     name: 'SLIDE-FIVE'
     animation:
       both:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 0.2
         repeat: 2
         keep_state: True
@@ -47,7 +47,7 @@ event:
     name: 'SLIDE-SIX'
     animation:
       both:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 5
         repeat: 2
         keep_state: True

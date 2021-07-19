@@ -140,7 +140,7 @@ class LightsSchedulerNode:
         '''callback subscribing to lights queue'''
         self._animation_queue = msg.queue
         if not self._animation_queue:
-            if self._last_anim and not self._last_anim[0] in set([anim[0] for anim in self._background_anim.values()]):
+            if self._last_anim and self._last_anim[0] in set([anim[0] for anim in self._background_anim.values()]):
                 if self._panther_state:
                     key = self._background_anim[self._state_animations[self._panther_state]]
                     self._set_animation_srv(key)
@@ -205,7 +205,7 @@ def main():
         lights = LightsSchedulerNode()
         rospy.spin()
     except Exception as e:
-        rospy.logerr(f'panther_lights error: {e}')
+        rospy.logerr(f'panther_lights_scheduler error: {e}')
         exit(1)
 
 

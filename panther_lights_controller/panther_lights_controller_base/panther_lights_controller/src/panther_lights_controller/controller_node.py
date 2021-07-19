@@ -17,6 +17,10 @@ class LightsControllerNode:
     
     def __init__(self):
         '''lights_controller_node class'''
+        
+        self._anim_queue = []
+        self._interrupt = False
+        self._current_animation = None
 
         rospy.init_node('lights_controller_node')
 
@@ -30,9 +34,9 @@ class LightsControllerNode:
         self._set_panel_state_service = rospy.Service('lights/controller/kill_current_anim', SetBool, self._kill_current_anim_callback)
         self._lights_controller_timer = rospy.Timer(rospy.Duration(0.05), self._lights_controller)
 
-        self._config_path = rospy.get_param('config_path', 0.2)
-        self._global_brightness = rospy.get_param('global_brightness', 30)
-        self._num_led = rospy.get_param('num_led', 10)
+        self._config_path = rospy.get_param('config_path', '../../config/led_conf.yaml')
+        self._global_brightness = rospy.get_param('global_brightness', 1)
+        self._num_led = rospy.get_param('num_led', 46)
 
 
         src_path = os.path.dirname(os.path.abspath(__file__))
@@ -42,15 +46,12 @@ class LightsControllerNode:
         conf_file.close()
 
         self._led_config_importer = LEDConfigImporter(yaml_file=conf_yaml,
-                                                      brightness=self._global_brightness,
+                                                      global_brightness=self._global_brightness,
                                                       num_led=self._num_led)
 
         self._controller = Controller(num_led=self._num_led,
                                       brightness=self._global_brightness)
 
-        self._anim_queue = []
-        self._interrupt = False
-        self._current_animation = None
 
         rospy.loginfo(f'{rospy.get_name()} started')
 
@@ -226,7 +227,7 @@ def main():
         lights = LightsControllerNode()
         rospy.spin()
     except Exception as e:
-        rospy.logerr(f'panther_lights error: {e}')
+        rospy.logerr(f'panther_lights_controller error: {e}')
         exit(1)
 
 

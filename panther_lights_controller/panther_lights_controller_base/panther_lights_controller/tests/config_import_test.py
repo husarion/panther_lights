@@ -235,7 +235,7 @@ class TestLedConfigImportSingleEventsFile(unittest.TestCase):
 
     def test_yaml_import(self):
         try:
-            LEDConfigImporter(self._conf_yaml)
+            LEDConfigImporter(self._conf_yaml, 1, 46)
         except Exception as e:
             self.fail(f'Failed to create LEDConfigImporter with correct data: {e}')
 
@@ -243,35 +243,26 @@ class TestLedConfigImportSingleEventsFile(unittest.TestCase):
     def test_global_brightness(self):
         try:
             for brightness in [0.1, 0.5, 1, 1.0]:
-                self._conf_yaml['global_brightness'] = brightness
-                LEDConfigImporter(self._conf_yaml)
+                LEDConfigImporter(self._conf_yaml, brightness, 46)
 
         except Exception as e:
             self.fail(f'Failed to create LEDConfigImporter with correct data: {e}')
 
         for brightness in [-1, 2, 1.1, 0.0, 0]:
-            self._conf_yaml['global_brightness'] = brightness
-            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, LEDConfigImporter, self._conf_yaml)
-        del self._conf_yaml['global_brightness']
-        self.assertRaises(LEDConfigImporter.LEDConfigImporterError, LEDConfigImporter, self._conf_yaml)
-
-
-    def test_num_led(self):
-        del self._conf_yaml['num_led']
-        self.assertRaises(LEDConfigImporter.LEDConfigImporterError, LEDConfigImporter, self._conf_yaml)
+            self.assertRaises(LEDConfigImporter.LEDConfigImporterError, LEDConfigImporter, self._conf_yaml, brightness, 46)
 
 
     def test_event_animations_files(self):
         del self._conf_yaml['event_animations_files']
-        self.assertRaises(LEDConfigImporter.LEDConfigImporterError, LEDConfigImporter, self._conf_yaml)
+        self.assertRaises(LEDConfigImporter.LEDConfigImporterError, LEDConfigImporter, self._conf_yaml, 1, 46)
 
 
     def test_uniqueue_names(self):
         led_conf = None
         self._conf_yaml['event_animations_files'][0] = os.path.dirname(os.path.abspath(__file__)) + \
-                        '/config/events/events_mulitple_battery.yaml'
+                        '/config/events/events_multiple_battery.yaml'
         try:
-            led_conf = LEDConfigImporter(self._conf_yaml)
+            led_conf = LEDConfigImporter(self._conf_yaml, 1, 46)
         except Exception as e:
             self.fail(f'Failed to create LEDConfigImporter with correct data: {e}')
 
@@ -319,8 +310,8 @@ class TestLedConfigImportSingleEventsFile(unittest.TestCase):
 
     def test_get_event(self):
         self._conf_yaml['event_animations_files'][0] = os.path.dirname(os.path.abspath(__file__)) + \
-                        '/config/events/events_mulitple_battery.yaml'
-        led_conf_importer = LEDConfigImporter(self._conf_yaml)
+                        '/config/events/events_multiple_battery.yaml'
+        led_conf_importer = LEDConfigImporter(self._conf_yaml, 1, 46)
 
         animations = {1 : 'TEST_1',
                       2 : 'TEST_2',
@@ -361,7 +352,7 @@ class TestLedConfigImportTwoEventsFiles(unittest.TestCase):
     def test_yaml_import(self):
         led_conf_importer = None
         try:
-            led_conf_importer = LEDConfigImporter(self._conf_yaml)
+            led_conf_importer = LEDConfigImporter(self._conf_yaml, 1, 46)
         except Exception as e:
             self.fail(f'Failed to create LEDConfigImporter with correct data: {e}')
 
@@ -378,11 +369,11 @@ class TestLedConfigImportTwoEventsFiles(unittest.TestCase):
 
     def test_same_file(self):
         self._conf_yaml['event_animations_files'][1] = self._conf_yaml['event_animations_files'][0]
-        self.assertRaises(LEDConfigImporter.LEDConfigImporterError, LEDConfigImporter, self._conf_yaml)
+        self.assertRaises(LEDConfigImporter.LEDConfigImporterError, LEDConfigImporter, self._conf_yaml, 1, 46)
 
 
     def test_uniqueue_names(self):
-        led_conf = LEDConfigImporter(self._conf_yaml)
+        led_conf = LEDConfigImporter(self._conf_yaml, 1, 46)
 
         events_conf_yaml = self._import_events()
         events_conf_yaml['event'][0]['id'] = 2

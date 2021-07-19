@@ -4,5 +4,5 @@ event:
     interrupting: true
     animation:
       both:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/blinker.png
         duration: 1

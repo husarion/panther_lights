@@ -3,14 +3,14 @@ event:
     name: 'TEST'
     animation:
       front:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/blinker_1.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/blinker_1.png
         duration: 4
         repeat: 3
         keep_state: true
         brightness: 0.5
 
       rear:
-        image: /husarion_ws/src/panther_lights_controller/tests/animations/test_pattern.png
+        image: /ros_ws/src/panther_lights_controller/tests/animations/test_pattern.png
         duration: 5
         repeat: 4
         keep_state: false
