@@ -1,6 +1,6 @@
 # Panther Lights hardware controller
 
-Panther Lights Scheduler is dockerized ROS node deciding which animation will be shown at the time. Node reads `/panther_driver/manager/status`. Based on that displays animation for given state. Here is list of animation and their meaning:
+Panther Lights Scheduler is dockerized ROS node deciding which animation will be shown at the time. Node reads `/panther_driver/manager/status`. Based on that displays animation for a given state. Here is list of animation and their meaning:
 
 ```
 TODO Place here list of default animations
@@ -18,9 +18,17 @@ rosservice call /lights/controller/set/id "animation:
 param: ''"
 ```
 
+
 fields *id* and *name* are used to determinate animation described in *config.yaml*. In order to call animation you can only specify *id* or *name*. If both are specified node will check if they match.
 
-*param* is being passed to animation during execution. Can be used for example to animate battery state on runtime.
+*param* is being passed to animation during execution. Can be used for example to animate battery state on runtime. For example to show battery state equal 50% the call will lok like this:
+```
+rosservice call /lights/controller/set/id "animation:
+  id: 6
+  name: 'SHOW_BATTERY'
+param: '0.5'"
+```
+
 
 ## Services
 - `/lights/controller/set/id` *(husarion_msgs/LEDSetId)* - executes animation read from config file.
@@ -33,7 +41,7 @@ fields *id* and *name* are used to determinate animation described in *config.ya
 
 
 ## Publish
-- `lights/controller/queue`, *(husarion_msgs/LEDAnimationArr)* - current animation queue called every time animation queue changes.
+- `lights/controller/queue`, *(husarion_msgs/LEDAnimationArr)* - current animation queue called every time the animation queue changes.
 
 
 ## Parameters
@@ -45,4 +53,5 @@ fields *id* and *name* are used to determinate animation described in *config.ya
 ## More instructions
 More detailed instructions can be found in *README<span>.</span>md* files in following directories:
 - how to configure animations - */docs*
-- controller specific dependencies - */platforms/<platform>*
+- controller specific dependencies - */platforms/\<platform\>*
+

@@ -1,11 +1,14 @@
 # panther_lights
-Dockerized nodes used to control Panther LED panels and display display it's status. Package nodes:
+Dockerized nodes used to control Panther LED panels and display it's status. Package nodes:
 
 - `panther_lights_controller` - ROS node controlling LED panels connected robot.
 
-- `panther_lights_scheduler` - ROS node deciding which animation to show on LED panel.
+- `panther_lights_scheduler` - ROS node deciding which animation to show on the LED panel.
 
-`panther_lights_controller` can support various LED panels. Currently supports *APA102* based and virtual LED panel using matplotlib.
+
+Currently supported platforms by `panther_lights_controller`:
+- *APA102* based LED panel
+- virtual LED panel implemented with Matplotlib.
 
 
 ## Building a Docker image
@@ -39,3 +42,4 @@ docker-compose up --build
 cd examples/raspberry_pi
 docker-compose up --build
 ```
+

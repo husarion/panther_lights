@@ -4,7 +4,7 @@ event:
     interrupting: true
     animation:
       both:
-        image: emergency.png
+        image: triangle01_red.png
         duration: 3
 
   - id: 2
@@ -12,7 +12,7 @@ event:
     interrupting: true
     animation:
       both:
-        image: error_occured.png
+        image: strip01_red.png
         duration: 3
         repeat: 2
 
@@ -21,7 +21,7 @@ event:
     interrupting: True
     animation:
       both:
-        image: goal_archived.png
+        image: strip01_purple.png
         duration: 3
         repeat: 3
 
@@ -31,7 +31,7 @@ event:
     interrupting: True
     animation:
       both:
-        image: critical_battery.png
+        image: battery_critical.png
         duration: 2
         repeat: 2
 
@@ -39,7 +39,7 @@ event:
     name: 'LOW_BATTERY'
     animation:
       both:
-        image: low_battery.png
+        image: battery_low.png
         duration: 2
         repeat: 2
 
@@ -56,20 +56,20 @@ event:
     name: 'AUTONOMOUS_ACTION'
     animation:
       both:
-        image: autonomous_action.png
+        image: triangle01_orange.png
         duration: 3
 
   - id: 8
     name: 'MANUAL_ACTION'
     animation:
       both:
-        image: joystick_web_ui.png
+        image: triangle01_blue.png
         duration: 3
 
   - id: 9
     name: 'READY'
     animation:
       both:
-        image: ready.png
+        image: triangle01_green.png
         duration: 1
 
