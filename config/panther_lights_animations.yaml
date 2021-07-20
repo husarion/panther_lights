@@ -13,7 +13,7 @@
 # TEST2 = 11
 
 global_brightness: 20
-num_leds: 48
+num_leds: 46
 
 animations:
   - id: 0 # BLINKER_RIGHT
