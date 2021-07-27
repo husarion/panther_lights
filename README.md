@@ -7,8 +7,8 @@ Dockerized nodes used to control Panther LED panels and display it's status. Pac
 
 
 Currently supported platforms by `panther_lights_controller`:
-- [*APA102* based](./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102) LED panel
-- [virtual](./panther_lights_controller/platforms/panther_lights_controller_plt_gui) LED panel implemented with Matplotlib.
+- *APA102* based LED panel
+- virtual LED panel implemented with Matplotlib.
 
 
 ## Prebuild images
@@ -51,7 +51,7 @@ docker-compose up --build
 For more detailed instructions:
 - [`panther_lights_controller` node description](./panther_lights_controller/README.md)
 - [`panther_lights_controller` defining own animations](./docs/README.md)
-- [`panther_lights_controller` custom panel controller](./panther_lights_controller/platforms/README.md)
+- [`panther_lights_controller` custom panel controller](./panther_lights_controller/platforms)
 - [`panther_lights_scheduler` node description](./panther_lights_scheduler/README.md)
 
 
