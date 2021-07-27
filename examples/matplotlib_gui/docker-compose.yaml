@@ -5,25 +5,26 @@ services:
     build:
       context: ./../../panther_lights_controller/platforms/panther_lights_controller_plt_gui
     container_name: panther_lights_controller
-    stdin_open: true
-    tty: true 
+    depends_on:
+      - ros_master
     environment:
       - "DISPLAY"
       - "QT_X11_NO_MITSHM=1"
-      - ROS_MASTER_URI=http://panther_lights_scheduler:11311
+      - ROS_MASTER_URI=http://ros_master:11311
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - type: bind
-        source: ./../../panther_lights_controller/panther_lights_controller_base/panther_lights_controller
-        target: /ros_ws/src/panther_lights_controller
     command: rosrun panther_lights_controller controller_node.py
 
   panther_lights_scheduler:
     build:
       context: ./../../panther_lights_scheduler/panther_lights_scheduler
+    depends_on:
+      - ros_master
+    environment: 
+      - ROS_MASTER_URI=http://ros_master:11311
     container_name: panther_lights_scheduler
-    volumes:
-      - type: bind
-        source: ./../../panther_lights_scheduler/panther_lights_scheduler/panther_lights_scheduler
-        target: /ros_ws/src/panther_lights_scheduler
+    command: rosrun panther_lights_scheduler lights_scheduler_node.py
+
+  ros_master:
+    image: ros:noetic-ros-core
     command: roscore

@@ -3,6 +3,7 @@
 import os
 import yaml
 import copy
+from threading import Lock
 
 import rospy
 from std_srvs.srv import SetBool
@@ -11,7 +12,7 @@ from panther_lights_controller.event import Event
 from panther_lights_controller.controller import Controller
 from panther_lights_controller.led_config_importer import LEDConfigImporter
 from husarion_msgs.msg import LEDAnimation, LEDAnimationArr
-from husarion_msgs.srv import LEDBrightness, LEDPanel, LEDSetId, LEDSetImageAnimation
+from husarion_msgs.srv import LEDBrightness, LEDPanel, LEDAnimationId, LEDSetImageAnimation
 
 class LightsControllerNode:
     
@@ -21,18 +22,21 @@ class LightsControllerNode:
         self._anim_queue = []
         self._interrupt = False
         self._current_animation = None
+        self._lock = Lock()
 
         rospy.init_node('lights_controller_node')
 
         self._animation_queue_pub = rospy.Publisher('lights/controller/queue', LEDAnimationArr, queue_size=10)
-        self._set_lights_service = rospy.Service('lights/controller/set/id', LEDSetId, self._set_lights_callback)
-        self._set_image_animation_service = rospy.Service('lights/controller/set/image', LEDSetImageAnimation, self._set_image_animation_callback)
-        self._set_brightness_service = rospy.Service('lights/controller/brightness', LEDBrightness, self._brightness_callback)
-        self._set_panel_state_service = rospy.Service('lights/controller/panel_state', LEDPanel, self._panel_state_callback)
-        self._set_panel_state_service = rospy.Service('lights/controller/clear_panel', LEDPanel, self._clear_panel_callback)
-        self._set_panel_state_service = rospy.Service('lights/controller/clear_queue', SetBool, self._clear_queue_callback)
-        self._set_panel_state_service = rospy.Service('lights/controller/kill_current_anim', SetBool, self._kill_current_anim_callback)
+        self._set_id_service = rospy.Service('lights/controller/set/id', LEDAnimationId, self._set_lights_callback)
+        self._image_animation_service = rospy.Service('lights/controller/set/image', LEDSetImageAnimation, self._set_image_animation_callback)
+        self._brightness_service = rospy.Service('lights/controller/brightness', LEDBrightness, self._brightness_callback)
+        self._panel_state_service = rospy.Service('lights/controller/panel_state', LEDPanel, self._panel_state_callback)
+        self._clear_panel_service = rospy.Service('lights/controller/clear_panel', LEDPanel, self._clear_panel_callback)
+        self._clear_queue_service = rospy.Service('lights/controller/queue/clear', SetBool, self._clear_queue_callback)
+        self._remove_id_service = rospy.Service('lights/controller/queue/remove_id', LEDAnimationId, self._remove_id)
+        self._kill_current_service = rospy.Service('lights/controller/queue/kill_current', SetBool, self._kill_current_anim_callback)
         self._lights_controller_timer = rospy.Timer(rospy.Duration(0.05), self._lights_controller)
+        self._animation_queue_timer = rospy.Timer(rospy.Duration(0.1), self._publish_queue_state)
 
         self._config_path = rospy.get_param('config_path', '../../config/led_conf.yaml')
         self._global_brightness = rospy.get_param('global_brightness', 1)
@@ -58,56 +62,53 @@ class LightsControllerNode:
 
     def _lights_controller(self, *args):
         '''executes rosnode'''
-        if self._current_animation:
-            if self._current_animation.finished:
-                del self._current_animation
-                self._current_animation = None
-                self._publish_queue_state()
+        with self._lock:
+            if self._current_animation:
+                if self._current_animation.finished:
+                    self._current_animation = None
 
-            # animation interrupts and saves previous
-            if self._anim_queue and self._interrupt:
-                self._interrupt = False
-                self._current_animation.stop()
-                if self._current_animation.percent_done > 0.9:
-                    del self._current_animation
-                else:
-                    if self._current_animation.percent_done < 0.15:
-                        self._current_animation.reset()
-                    self._anim_queue.insert(1, self._current_animation)
+                # animation interrupts and saves previous
+                if self._anim_queue and self._interrupt:
+                    self._interrupt = False
+                    self._current_animation.stop()
+                    if self._current_animation.percent_done > 0.9:
+                        self._current_animation = None
+                    else:
+                        if self._current_animation.percent_done < 0.15:
+                            self._current_animation.reset()
+                        self._anim_queue.insert(1, self._current_animation)
 
+                    self._current_animation = self._anim_queue.pop(0)
+                    if not self._current_animation.spawned:
+                        self._current_animation.spawn(self._controller)
+                    self._current_animation.run()
+            else:
+                # await new animations
+                if not self._anim_queue:
+                    return
+
+                # get, spawn and start new animation
                 self._current_animation = self._anim_queue.pop(0)
                 if not self._current_animation.spawned:
                     self._current_animation.spawn(self._controller)
-                self._publish_queue_state()
                 self._current_animation.run()
-        else:
-            # await new animations
-            while not self._anim_queue:
-                return
-
-            # get, spawn and start new animation
-            self._current_animation = self._anim_queue.pop(0)
-            if not self._current_animation.spawned:
-                self._current_animation.spawn(self._controller)
-            self._publish_queue_state()
-            self._current_animation.run()
 
     
-    def _publish_queue_state(self):
-        '''returns animations execution order'''
-        animations_list = LEDAnimationArr()
-        animations_list.header.stamp = rospy.Time.now()
+    def _publish_queue_state(self, *args):
+        '''publishes current animations execution order'''
+        with self._lock:
+            animations_list = LEDAnimationArr()
+            animations_list.header.stamp = rospy.Time.now()
 
-        if self._current_animation:
-            key = self._led_config_importer.event_key(id=self._current_animation.id)
-            animations_list.queue.append(LEDAnimation(key[0], key[1]))
+            if self._current_animation:
+                key = self._led_config_importer.event_key(id=self._current_animation.id)
+                animations_list.queue.append(LEDAnimation(key[0], key[1]))
 
-        for anim in self._anim_queue:
-            key = self._led_config_importer.event_key(id=anim.id)
-            animations_list.queue.append(LEDAnimation(key[0], key[1]))
+            for anim in self._anim_queue:
+                key = self._led_config_importer.event_key(id=anim.id)
+                animations_list.queue.append(LEDAnimation(key[0], key[1]))
 
-
-        self._animation_queue_pub.publish(animations_list)
+            self._animation_queue_pub.publish(animations_list)
         
 
     def _set_lights_callback(self, anim):
@@ -212,14 +213,35 @@ class LightsControllerNode:
         '''removes currently running animation'''
         if msg.data:
             try:
-                self._current_animation.stop()
-                del self._current_animation
+                if self._current_animation:
+                    self._current_animation.stop()
                 self._current_animation = None
                 return (True, 'animation killed')
             except Exception as e:
                 pass
             return (False, 'failed to kill animation')
         return (True, 'animation not killed as requested')
+
+
+    def _remove_id(self, msg):
+        '''removes given animation from queue'''
+        try:
+            key = None
+            if msg.animation.id != 0 and not msg.animation.name:
+                key = self._led_config_importer.event_key(id=msg.animation.id)
+            elif msg.animation.id == 0 and msg.animation.name:
+                key = self._led_config_importer.event_key(name=msg.animation.name)
+            else:
+                key = self._led_config_importer.event_key(id=msg.animation.id, name=msg.animation.name)
+
+            for i, anim in enumerate(self._anim_queue):
+                if key == self._led_config_importer.event_key(id=anim.id):
+                    if self._anim_queue:
+                        self._anim_queue[i].stop()
+                    self._anim_queue.pop(i)
+        except Exception:
+            return 'failed'
+        return 'success'
 
 
 def main():

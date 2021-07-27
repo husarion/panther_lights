@@ -1,15 +1,32 @@
 version: '3.4'
 
 services:
-  panther_lights:
+  panther_lights_controller:
     build:
       context: ./../../panther_lights_controller/platforms/panther_lights_controller_rpi_apa102
     container_name: panther_lights_controller
     privileged: true
+    depends_on:
+      - ros_master
+    environment:
+      - ROS_MASTER_URI=http://ros_master:11311
     volumes:
       - /dev/gpiomem:/dev/gpiomem
       - /sys:/sys
-      - type: bind
-        source: ./../../panther_lights_controller/panther_lights_controller_base/panther_lights_controller
-        target: /ros_ws/src/panther_lights_controller
+      - /config:/ros_ws/src/panther_lights_controller/config
+      - /animations:/ros_ws/src/panther_lights_controller/animations
     command: rosrun panther_lights_controller controller_node.py
+
+    panther_lights_scheduler:
+      build:
+        context: ./../../panther_lights_scheduler/panther_lights_scheduler
+      container_name: panther_lights_scheduler
+      depends_on:
+        - ros_master
+      environment:
+        - ROS_MASTER_URI=http://ros_master:11311
+      command: rosrun panther_lights_scheduler lights_scheduler_node.py
+    
+    ros_master:
+      image: ros:noetic-ros-core
+      command: roscore

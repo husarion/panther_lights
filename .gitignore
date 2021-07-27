@@ -1,4 +1,4 @@
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 *.pyc
-/hsuarion_msgs
+/examples/move_base_simulation

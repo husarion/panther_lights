@@ -1,5 +1,21 @@
 # Defining own events and animations
 
+Own animations are defined in `panther_lights_controller`. *config* files are defined in */panther_lights_controller/panther_lights_controller_base/panther_lights_controller/config*.
+
+Animation are defined in */panther_lights_controller/panther_lights_controller_base/panther_lights_controller/animations*
+
+
+## Binding files with custom animations
+
+```yaml
+services:
+  panther_lights_controller:
+    image: husarion/panther_lights_controller
+    volumes:
+      - /config:/ros_ws/src/panther_lights_controller/config
+      - /animations:/ros_ws/src/panther_lights_controller/animations
+    command: rosrun panther_lights_controller controller_node.py
+```
 
 ## *config.yaml*
 Config file specifies paths to yaml files containing animations defined by Husarion and custom user animations.
