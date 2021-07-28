@@ -28,10 +28,10 @@ jobs:
 
     - name: Unit test
       run: |
-        docker build -t panther_lights_controller:base \
+        docker build -t panther-lights-controller:base \
           -f ./panther_lights_controller/panther_lights_controller_base/Dockerfile \
           ./panther_lights_controller/panther_lights_controller_base/
-        docker run --rm panther_lights_controller:base python3 /ros_ws/src/panther_lights_controller/tests/config_import_test.py
+        docker run --rm panther-lights-controller:base python3 /ros_ws/src/panther_lights_controller/tests/config_import_test.py
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
@@ -55,8 +55,8 @@ jobs:
         file: ./panther_lights_controller/panther_lights_controller_base/Dockerfile
         platforms: linux/arm64, linux/amd64
         push: true
-        tags: husarion/panther_lights_controller:base
-        cache-from: type=registry,ref=husarion/panther_lights_controller:base
+        tags: husarion/panther-lights-controller:base
+        cache-from: type=registry,ref=husarion/panther-lights-controller:base
         cache-to: type=inline
 
     - name: Build and push panther_lights_controller:plt_gui
@@ -66,8 +66,8 @@ jobs:
         file: ./panther_lights_controller/platforms/panther_lights_controller_plt_gui/Dockerfile
         platforms: linux/arm64, linux/amd64
         push: true
-        tags: husarion/panther_lights_controller:plt_gui
-        cache-from: type=registry,ref=husarion/panther_lights_controller:plt_gui
+        tags: husarion/panther-lights_controller:plt-gui
+        cache-from: type=registry,ref=husarion/panther-lights-controller:plt-gui
         cache-to: type=inline
 
     - name: Build and push panther_lights_controller:rpi_apa102
@@ -77,8 +77,8 @@ jobs:
         file: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102/Dockerfile
         platforms: linux/arm64
         push: true
-        tags: husarion/panther_lights_controller:rpi_apa102
-        cache-from: type=registry,ref=husarion/panther_lights_controller:rpi_apa102
+        tags: husarion/panther-lights-controller:rpi-apa102
+        cache-from: type=registry,ref=husarion/panther-lights-controller:rpi-apa102
         cache-to: type=inline
 
 
@@ -112,6 +112,6 @@ jobs:
           file: ./panther_lights_scheduler/panther_lights_scheduler/Dockerfile
           platforms: linux/arm64, linux/amd64
           push: true
-          tags: husarion/panther_lights_scheduler:latest
-          cache-from: type=registry,ref=husarion/panther_lights_scheduler
+          tags: husarion/panther-lights-scheduler:latest
+          cache-from: type=registry,ref=husarion/panther-lights-scheduler
           cache-to: type=inline

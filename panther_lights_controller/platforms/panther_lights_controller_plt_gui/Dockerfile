@@ -1,4 +1,4 @@
-FROM husarion/panther_lights_controller:base
+FROM husarion/panther-lights-controller:base
 
 ENV PANTHER_LIGHTS_CONTROLLER PLT_GUI
 
