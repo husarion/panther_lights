@@ -59,18 +59,18 @@ jobs:
         cache-from: type=registry,ref=husarion/panther-lights-controller:base
         cache-to: type=inline
 
-    - name: Build and push panther_lights_controller:plt_gui
+    - name: Build and push plt-gui tag
       uses: docker/build-push-action@v2
       with:
         context: ./panther_lights_controller/platforms/panther_lights_controller_plt_gui
         file: ./panther_lights_controller/platforms/panther_lights_controller_plt_gui/Dockerfile
         platforms: linux/arm64, linux/amd64
         push: true
-        tags: husarion/panther-lights_controller:plt-gui
+        tags: husarion/panther-lights-controller:plt-gui
         cache-from: type=registry,ref=husarion/panther-lights-controller:plt-gui
         cache-to: type=inline
 
-    - name: Build and push panther_lights_controller:rpi_apa102
+    - name: Build and push rpi-apa102 tag
       uses: docker/build-push-action@v2
       with:
         context: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102
