@@ -18,18 +18,18 @@ Prebuild images are available on dockerhub:
 #### panther_lights_controller
 ```bash
 cd panther_lights_controller/panther_lights_controller_base
-sudo docker build -t panther_lights_controller:base .
+sudo docker build -t husarion/panther_lights_controller:base .
 ```
 For given controller implementation run:
 ```bash
 cd ../platforms/panther_lights_controller_<platform>
-sudo docker build -t panther_lights_controller:<platform> .
+sudo docker build -t husarion/panther_lights_controller:<platform> .
 ```
 
 #### panther_lights_scheduler
 ```bash
 cd panther_lights_scheduler/panther_lights_scheduler
-sudo docker build -t panther_lights_scheduler .
+sudo docker build -t husarion/panther_lights_scheduler .
 ```
 
 ## Examples
