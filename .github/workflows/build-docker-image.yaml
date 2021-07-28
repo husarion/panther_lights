@@ -6,8 +6,8 @@ on:
       - 'lights_new'
   
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  build_lights_controller:
+    runs-on: ubuntu-18.04
 
     steps:
     - name: Checkout
@@ -27,8 +27,15 @@ jobs:
         registry: docker.io
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and test image
+      run: |
+        docker build -t panther_lights_controller:base \
+          -f ./panther_lights_controller/panther_lights_controller_base/Dockerfile \
+          ./panther_lights_controller/panther_lights_controller_base/
+        docker run --rm panther_lights_controller:base python3 /ros_ws/src/panther_lights_controller/tests/config_import_test.py
           
-    - name: Build and push panther_lights_controller:base
+    - name: Build and push base tag
       uses: docker/build-push-action@v2
       with:
         context: ./panther_lights_controller/panther_lights_controller_base
@@ -55,19 +62,23 @@ jobs:
       with:
         context: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102
         file: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102/Dockerfile
-        platforms: linux/arm64, linux/amd64, linux/arm/v7
+        platforms: linux/arm64, linux/arm/v7
         push: true
         tags: husarion/panther_lights_controller:rpi_apa102
         cache-from: type=registry,ref=husarion/panther_lights_controller:rpi_apa102
         cache-to: type=inline
 
-    - name: Build and push panther_lights_scheduler
-      uses: docker/build-push-action@v2
-      with:
-        context: ./panther_lights_scheduler/panther_lights_scheduler
-        file: ./panther_lights_scheduler/panther_lights_scheduler/Dockerfile
-        platforms: linux/arm64, linux/arm/v7
-        push: true
-        tags: husarion/panther_lights_scheduler
-        cache-from: type=registry,ref=husarion/panther_lights_scheduler
-        cache-to: type=inline
+
+  build_lights_scheduler:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Build and push panther_lights_scheduler
+        uses: docker/build-push-action@v2
+        with:
+          context: ./panther_lights_scheduler/panther_lights_scheduler
+          file: ./panther_lights_scheduler/panther_lights_scheduler/Dockerfile
+          platforms: linux/arm64, linux/arm/v7
+          push: true
+          tags: husarion/panther_lights_scheduler
+          cache-from: type=registry,ref=husarion/panther_lights_scheduler
+          cache-to: type=inline
