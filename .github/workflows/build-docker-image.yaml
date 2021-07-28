@@ -52,8 +52,8 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: ./panther_lights_controller/panther_lights_controller_base
-        # file: ./panther_lights_controller/panther_lights_controller_base/Dockerfile
-        platforms: linux/arm64, linux/amd64, linux/arm/v7
+        file: ./panther_lights_controller/panther_lights_controller_base/Dockerfile
+        platforms: linux/arm64, linux/amd64
         push: true
         tags: husarion/panther_lights_controller:base
         cache-from: type=registry,ref=husarion/panther_lights_controller:base
@@ -63,7 +63,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: ./panther_lights_controller/platforms/panther_lights_controller_plt_gui
-        # file: ./panther_lights_controller/platforms/panther_lights_controller_plt_gui/Dockerfile
+        file: ./panther_lights_controller/platforms/panther_lights_controller_plt_gui/Dockerfile
         platforms: linux/arm64, linux/amd64
         push: true
         tags: husarion/panther_lights_controller:plt_gui
@@ -74,8 +74,8 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102
-        # file: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102/Dockerfile
-        platforms: linux/arm64, linux/arm/v7
+        file: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102/Dockerfile
+        platforms: linux/arm64
         push: true
         tags: husarion/panther_lights_controller:rpi_apa102
         cache-from: type=registry,ref=husarion/panther_lights_controller:rpi_apa102
@@ -109,9 +109,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./panther_lights_scheduler/panther_lights_scheduler
-          # file: ./panther_lights_scheduler/panther_lights_scheduler/Dockerfile
-          platforms: linux/arm64, linux/amd64, linux/arm/v7
+          file: ./panther_lights_scheduler/panther_lights_scheduler/Dockerfile
+          platforms: linux/arm64, linux/amd64
           push: true
-          tags: husarion/panther_lights_scheduler:${{ github.event.inputs.tag }}
+          tags: husarion/panther_lights_scheduler:latest
           cache-from: type=registry,ref=husarion/panther_lights_scheduler
           cache-to: type=inline
