@@ -17,6 +17,7 @@ class LEDConfigImporter:
 
     def __init__(self, yaml_file, global_brightness, num_led):
         '''class importing panel configuration and events definitions'''
+        raise LEDConfigImporter.LEDConfigImporterError(f'no')
         self._yaml = yaml_file
 
         # Check if obligatory keyword exist
