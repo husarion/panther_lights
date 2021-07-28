@@ -4,6 +4,16 @@ on:
   push:
     branches:
       - 'lights_new'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'tag that the image will be built with'
+        required: true
+        default: 'latest'
+      branch:
+        description: 'branch that will be used to build image'
+        required: true
+        default: 'main'
   
 jobs:
   build_lights_controller:
@@ -13,6 +23,8 @@ jobs:
         
     - name: Checkout
       uses: actions/checkout@v1
+      with:
+        ref: ${{ github.event.inputs.branch }}
 
     - name: Unit test
       run: |
@@ -36,13 +48,12 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-          
     - name: Build and push base tag
       uses: docker/build-push-action@v2
       with:
         context: ./panther_lights_controller/panther_lights_controller_base
         file: ./panther_lights_controller/panther_lights_controller_base/Dockerfile
-        platforms: linux/arm64, linux/amd64
+        platforms: linux/arm64, linux/amd64, linux/arm/v7
         push: true
         tags: husarion/panther_lights_controller:base
         cache-from: type=registry,ref=husarion/panther_lights_controller:base
@@ -64,7 +75,7 @@ jobs:
       with:
         context: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102
         file: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102/Dockerfile
-        platforms: linux/arm64
+        platforms: linux/arm64, linux/arm/v7
         push: true
         tags: husarion/panther_lights_controller:rpi_apa102
         cache-from: type=registry,ref=husarion/panther_lights_controller:rpi_apa102
@@ -76,6 +87,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -97,8 +110,8 @@ jobs:
         with:
           context: ./panther_lights_scheduler/panther_lights_scheduler
           file: ./panther_lights_scheduler/panther_lights_scheduler/Dockerfile
-          platforms: linux/arm64, linux/amd64
+          platforms: linux/arm64, linux/amd64, linux/arm/v7
           push: true
-          tags: husarion/panther_lights_scheduler:latest
+          tags: husarion/panther_lights_scheduler:${{ github.event.inputs.tag }}
           cache-from: type=registry,ref=husarion/panther_lights_scheduler
           cache-to: type=inline
