@@ -13,6 +13,8 @@ Currently supported platforms by `panther_lights_controller`:
 
 ## Prebuild images
 Prebuild images are available on dockerhub:
+- [`panther-lights-controller`](https://hub.docker.com/r/husarion/panther-lights-controller/tags?page=1&ordering=last_updated)
+- [`panther-lights-scheduler`](https://hub.docker.com/r/husarion/panther-lights-scheduler)
 
 ## Building a Docker image
 #### panther_lights_controller
