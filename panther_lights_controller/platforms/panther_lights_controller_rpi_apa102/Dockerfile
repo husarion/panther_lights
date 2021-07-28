@@ -17,5 +17,3 @@ RUN apt clean && \
     rm -rf /var/lib/apt/lists/* 
 
 WORKDIR /
-
-RUN echo "source \"/ros_ws/devel/setup.bash\"" >> ~/.bashrc
