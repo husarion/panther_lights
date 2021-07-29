@@ -55,7 +55,7 @@ jobs:
         file: ./panther_lights_controller/panther_lights_controller_base/Dockerfile
         platforms: linux/arm64, linux/amd64
         push: true
-        tags: husarion/panther-lights-controller:base
+        tags: husarion/panther-lights-controller:noetic-base-latest
         cache-from: type=registry,ref=husarion/panther-lights-controller:base
         cache-to: type=inline
 
@@ -66,7 +66,7 @@ jobs:
         file: ./panther_lights_controller/platforms/panther_lights_controller_plt_gui/Dockerfile
         platforms: linux/arm64, linux/amd64
         push: true
-        tags: husarion/panther-lights-controller:plt-gui
+        tags: husarion/panther-lights-controller:noetic-plt-gui-latest
         cache-from: type=registry,ref=husarion/panther-lights-controller:plt-gui
         cache-to: type=inline
 
@@ -77,7 +77,7 @@ jobs:
         file: ./panther_lights_controller/platforms/panther_lights_controller_rpi_apa102/Dockerfile
         platforms: linux/arm64
         push: true
-        tags: husarion/panther-lights-controller:rpi-apa102
+        tags: husarion/panther-lights-controller:noetic-rpi-apa102-latest
         cache-from: type=registry,ref=husarion/panther-lights-controller:rpi-apa102
         cache-to: type=inline
 
@@ -112,6 +112,6 @@ jobs:
           file: ./panther_lights_scheduler/panther_lights_scheduler/Dockerfile
           platforms: linux/arm64, linux/amd64
           push: true
-          tags: husarion/panther-lights-scheduler:latest
+          tags: husarion/panther-lights-scheduler:noetic-latest
           cache-from: type=registry,ref=husarion/panther-lights-scheduler
           cache-to: type=inline
