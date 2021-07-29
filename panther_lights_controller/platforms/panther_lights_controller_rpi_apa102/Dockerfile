@@ -1,4 +1,4 @@
-FROM husarion/panther-lights-controller:base-noetic-latest
+FROM husarion/panther-lights-controller:noetic-base-latest
 
 ENV PANTHER_LIGHTS_CONTROLLER APA102
 
