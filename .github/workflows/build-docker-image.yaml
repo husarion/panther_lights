@@ -56,7 +56,7 @@ jobs:
         platforms: linux/arm64, linux/amd64
         push: true
         tags: husarion/panther-lights-controller:noetic-base-latest
-        cache-from: type=registry,ref=husarion/panther-lights-controller:base
+        cache-from: type=registry,ref=husarion/panther-lights-controller:noetic-base-latest
         cache-to: type=inline
 
     - name: Build and push plt-gui tag
@@ -67,7 +67,7 @@ jobs:
         platforms: linux/arm64, linux/amd64
         push: true
         tags: husarion/panther-lights-controller:noetic-plt-gui-latest
-        cache-from: type=registry,ref=husarion/panther-lights-controller:plt-gui
+        cache-from: type=registry,ref=husarion/panther-lights-controller:noetic-plt-gui-latest
         cache-to: type=inline
 
     - name: Build and push rpi-apa102 tag
@@ -78,7 +78,7 @@ jobs:
         platforms: linux/arm64
         push: true
         tags: husarion/panther-lights-controller:noetic-rpi-apa102-latest
-        cache-from: type=registry,ref=husarion/panther-lights-controller:rpi-apa102
+        cache-from: type=registry,ref=husarion/panther-lights-controller:noetic-rpi-apa102-latest
         cache-to: type=inline
 
 
@@ -113,5 +113,5 @@ jobs:
           platforms: linux/arm64, linux/amd64
           push: true
           tags: husarion/panther-lights-scheduler:noetic-latest
-          cache-from: type=registry,ref=husarion/panther-lights-scheduler
+          cache-from: type=registry,ref=husarion/panther-lights-scheduler:noetic-latest
           cache-to: type=inline
