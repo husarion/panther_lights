@@ -39,9 +39,9 @@ param: '0.5'"
 
 
 ## Parameters
-- `config_path` *(string, default '$(panther_lights_controller)/config/led_config.yaml)* - YAML file containing panel configuration.
-- `global_brightness` *(float, default 1)* - global brightness ranges between 0 to 1.
-- `num_led` - *(int, default 46)* - LED count for both panels.
+- `~config_path` *(string, default: '$(panther_lights_controller)/config/led_config.yaml)* - YAML file containing panel configuration.
+- `~global_brightness` *(float, default: 1)* - global brightness ranges between 0 to 1.
+- `~num_led` - *(int, default: 46)* - LED count for both panels.
 
 
 ## More instructions

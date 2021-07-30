@@ -4,10 +4,10 @@ Panther Lights Scheduler is dockerized ROS node deciding which animation will be
 
 
 ## Parameters
-- `low_battery_margin` *(double, default 0.2)* - charge of battery at which *low_battery* starts being displayed.
-- `low_battery_anim_delay` *(double, default 30)* - seconds between *low_battery* animation.
+- `~low_battery_margin` *(double, default: 0.2)* - charge of battery at which *low_battery* starts being displayed.
+- `~low_battery_anim_delay` *(double, default: 30)* - seconds between *low_battery* animation.
 
-- `critical_battery_anim_delay` *(double, default 10)* - seconds between *critical_battery* animation.
+- `~critical_battery_anim_delay` *(double, default: 10)* - seconds between *critical_battery* animation.
 
 ## Subscribed topics
 
