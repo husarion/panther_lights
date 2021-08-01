@@ -6,7 +6,7 @@ RUN apt update && \
     apt install -y  python3-tk && \
     pip3 install matplotlib
 
-WORKDIR /$ROS_WS
+WORKDIR /ros_ws
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     catkin_make
 

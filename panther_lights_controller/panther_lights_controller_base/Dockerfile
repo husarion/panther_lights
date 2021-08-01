@@ -1,6 +1,5 @@
 FROM ros:noetic-ros-core
 
-ENV ROS_WS ros_ws
 ENV PANTHER_LIGHTS_CONTROLLER NONE
 
 # Use bash instead of sh
@@ -24,16 +23,19 @@ RUN pip3 install \
         imageio
 
 # Create and initialise ROS workspace
-RUN mkdir -p /$ROS_WS/src
-COPY ./panther_lights_controller /$ROS_WS/src/panther_lights_controller
-RUN chmod +x /$ROS_WS/src/panther_lights_controller/src/panther_lights_controller/controller_node.py
-WORKDIR /$ROS_WS
+RUN mkdir -p /ros_ws/src
+COPY ./panther_lights_controller /ros_ws/src/panther_lights_controller
+RUN chmod +x /ros_ws/src/panther_lights_controller/src/panther_lights_controller/controller_node.py
+WORKDIR /ros_ws
 RUN git clone https://github.com/husarion/husarion_msgs.git --branch dev src/husarion_msgs && \
     mkdir build && \
     source /opt/ros/$ROS_DISTRO/setup.bash && \
     rosdep init && \
     rosdep update && \
     catkin_make install
+
+# Run tests
+RUN python3 /ros_ws/src/panther_lights_controller/tests/config_import_test.py
 
 WORKDIR /
 

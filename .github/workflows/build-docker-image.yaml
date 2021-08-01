@@ -26,13 +26,6 @@ jobs:
       with:
         ref: ${{ github.event.inputs.branch }}
 
-    - name: Unit test
-      run: |
-        docker build -t panther-lights-controller:base \
-          -f ./panther_lights_controller/panther_lights_controller_base/Dockerfile \
-          ./panther_lights_controller/panther_lights_controller_base/
-        docker run --rm panther-lights-controller:base python3 /ros_ws/src/panther_lights_controller/tests/config_import_test.py
-
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
       
@@ -108,8 +101,8 @@ jobs:
       - name: Build and push panther_lights_scheduler
         uses: docker/build-push-action@v2
         with:
-          context: ./panther_lights_scheduler/panther_lights_scheduler
-          file: ./panther_lights_scheduler/panther_lights_scheduler/Dockerfile
+          context: ./panther_lights_scheduler
+          file: ./panther_lights_scheduler/Dockerfile
           platforms: linux/arm64, linux/amd64
           push: true
           tags: husarion/panther-lights-scheduler:noetic-latest

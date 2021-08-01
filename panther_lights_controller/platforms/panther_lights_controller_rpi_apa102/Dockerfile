@@ -4,11 +4,11 @@ ENV PANTHER_LIGHTS_CONTROLLER APA102
 
 RUN pip3 install RPi.GPIO
 
-WORKDIR /$ROS_WS/src
+WORKDIR /ros_ws/src
 RUN git clone https://github.com/byq77/apa102-pi.git && \
     cd apa102-pi && sudo python3 setup.py install
 
-WORKDIR /$ROS_WS
+WORKDIR /ros_ws
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     catkin_make
 

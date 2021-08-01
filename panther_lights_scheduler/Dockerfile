@@ -1,7 +1,5 @@
 FROM ros:noetic-ros-core
 
-ENV  ROS_WS ros_ws
-
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
 
@@ -20,10 +18,10 @@ RUN pip3 install \
         rospkg
 
 # Create and initialise ROS workspace
-RUN mkdir -p /$ROS_WS/src
-COPY ./panther_lights_scheduler /$ROS_WS/src/panther_lights_scheduler/
-RUN chmod +x /$ROS_WS/src/panther_lights_scheduler/src/panther_lights_scheduler/lights_scheduler_node.py
-WORKDIR /$ROS_WS
+RUN mkdir -p /ros_ws/src
+COPY ./panther_lights_scheduler /ros_ws/src/panther_lights_scheduler/
+RUN chmod +x /ros_ws/src/panther_lights_scheduler/src/panther_lights_scheduler/lights_scheduler_node.py
+WORKDIR /ros_ws
 RUN git clone https://github.com/husarion/husarion_msgs.git --branch dev src/husarion_msgs && \
     mkdir build && \
     source /opt/ros/$ROS_DISTRO/setup.bash && \
