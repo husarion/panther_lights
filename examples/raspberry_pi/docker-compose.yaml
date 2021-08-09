@@ -10,6 +10,8 @@ services:
       - ros_master
     environment:
       - ROS_MASTER_URI=http://ros_master:11311
+    # devices:
+    #   - /dev/gpiomem
     volumes:
       - /dev/gpiomem:/dev/gpiomem
       - /sys:/sys

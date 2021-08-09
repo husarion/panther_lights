@@ -186,13 +186,13 @@ class LightsControllerNode:
 
 
     def _panel_state_callback(self, msg):
-        '''rosservice callback for /lights/panel_state'''
+        '''rosservice callback for /lights/controller/panel_state'''
         self._controller.set_panel_state(msg.panel, msg.data)
         return 'success'
 
 
     def _clear_panel_callback(self, msg):
-        '''rosservice callback for /lights/panel_state'''
+        '''rosservice callback for /lights/controller/clear_panel'''
         self._controller.clear(msg.panel, msg.data)
         return 'success'
 
