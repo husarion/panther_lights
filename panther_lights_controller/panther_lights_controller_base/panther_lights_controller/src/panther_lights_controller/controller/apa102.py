@@ -57,25 +57,17 @@ class HardwareAPA102Controller(Controller):
     def set_panel(self, panel_num, panel_frame, brightness: Optional[int]=None):
         '''sets panel_frame on panel_num led panel'''
         with self._lock:
-
-            with self._anim_lock:
-                self._queue.put((panel_num, panel_frame, brightness))
+            self._queue.put((panel_num, panel_frame, brightness))
 
     
     def _update_anim(self):
 
         panel = (0, [0]*self._num_led, None)
-
         with self._anim_lock:
             running = self._is_running
 
         while running:
-            try:
-                with self._anim_lock:
-                    panel = self._queue.get(block=True, timeout=0.000001)
-            except queue.Empty:
-                pass
-            
+            panel = self._queue.get(block=True)
             if panel[2] is None:
                 brightness = self._global_brightness
             else:
@@ -96,6 +88,8 @@ class HardwareAPA102Controller(Controller):
 
             with self._anim_lock:
                 running = self._is_running
+            
+            
 
         self._pixels.cleanup()
         GPIO.output(self._led_power_pin, not HardwareAPA102Controller.LED_POWER_ON_STATE)
@@ -129,8 +123,12 @@ class HardwareAPA102Controller(Controller):
     
     def __del__(self):
         '''cleans all leds and turns off both panels'''
+        self._queue.put((0, [0]*self._num_led, None))
+        self._queue.put((1, [0]*self._num_led, None))
+        time.sleep(0.001)
         with self._anim_lock:
             self._is_running = False
+        self._queue.put((0, [0]*self._num_led, None))
         finished = False
         while not finished:
             with self._anim_lock:
