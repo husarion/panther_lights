@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   message_generation
+  actionlib
+  actionlib_msgs
 )
 
 catkin_python_setup()
@@ -34,7 +36,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy message_runtime roscpp
+  CATKIN_DEPENDS rospy message_runtime roscpp actionlib actionlib_msgs
 )
 
 include_directories(
@@ -48,11 +50,11 @@ include_directories(
 
 add_executable(lights_controller_simple src/panther_lights/lights_controller_simple.cpp)
 target_link_libraries(lights_controller_simple ${catkin_LIBRARIES})
-add_dependencies(lights_controller_simple panther_lights_gencpp)
+add_dependencies(lights_controller_simple panther_lights_gencpp ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 add_executable(lights_controller src/panther_lights/lights_controller_node.cpp src/panther_lights/LightsController.cpp)
 target_link_libraries(lights_controller ${catkin_LIBRARIES})
-add_dependencies(lights_controller panther_lights_gencpp)
+add_dependencies(lights_controller panther_lights_gencpp ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 
 #############
