@@ -5,11 +5,7 @@
   <version>0.3.0</version>
   <description>The panther_lights_controller package</description>
 
-  <maintainer email="szymon.szantula@husarion.com">byq77</maintainer>
-  <maintainer email="adam.krawczyk@husarion.com">khasreto</maintainer>
-  <maintainer email="krzysztof.wojciechowski@husarion.com">Kotochleb</maintainer>
-
-
+  <maintainer email="contact@husarion.com">Husarion</maintainer>
 
   <license>MIT</license>
 
@@ -30,6 +26,4 @@
   <exec_depend>python-rospkg</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 3">message_runtime</exec_depend>
 
-  <export>
-  </export>
 </package>
